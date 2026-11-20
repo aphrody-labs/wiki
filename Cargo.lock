@@ -16922,8 +16922,6 @@ version = "1.4.5"
 dependencies = [
  "anyhow",
  "clap",
- "serde",
- "serde_json",
 ]
 
 [[package]]
