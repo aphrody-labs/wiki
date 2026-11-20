@@ -133,7 +133,8 @@ mod tests {
 
     #[test]
     fn story_chapters_json_lists_every_chapter_with_its_sources() {
-        let chapters: Vec<serde_json::Value> = serde_json::from_str(&story_chapters_json()).unwrap_or_default();
+        let chapters: Vec<serde_json::Value> =
+            serde_json::from_str(&story_chapters_json()).unwrap_or_default();
         assert_eq!(chapters.len(), crate::roster::get_story_chapters().len());
         assert_eq!(chapters[17]["episode_id"], 880);
         assert_eq!(chapters[0]["manga_volume_id"], 82);

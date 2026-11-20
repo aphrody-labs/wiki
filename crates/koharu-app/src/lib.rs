@@ -1,10 +1,10 @@
 //! Pure GPUI Kit Koharu manga translation workspace (zero Tauri / tauri-specta).
 
-use gpui_kit::{Context, IntoElement, ParentElement, Render, Styled, Window, div};
 use gpui_kit::base::StyledExt;
 use gpui_kit::component::description_list::DescriptionList;
 use gpui_kit::component::tag::Tag;
 use gpui_kit::component::{ActiveTheme, h_flex, v_flex};
+use gpui_kit::{Context, IntoElement, ParentElement, Render, Styled, Window, div};
 
 /// Canonical Koharu editor command names dispatched directly via `koharu_library::editor::dispatch`.
 pub const COMMAND_NAMES: &[&str] = &["open_document", "detect", "ocr", "inpaint", "render"];
@@ -16,9 +16,7 @@ pub struct KoharuWorkspace {
 
 impl KoharuWorkspace {
     pub fn new(_window: &mut Window, _cx: &mut Context<Self>) -> Self {
-        Self {
-            command_count: koharu_library::editor::dispatch::COMMANDS.len(),
-        }
+        Self { command_count: koharu_library::editor::dispatch::COMMANDS.len() }
     }
 }
 
@@ -38,11 +36,11 @@ impl Render for KoharuWorkspace {
                     .child(div().text_lg().font_bold().child("Koharu Studio"))
                     .child(Tag::info().child(format!("{} commands", self.command_count))),
             )
-            .child(
-                DescriptionList::new()
-                    .item("Engine", "koharu-library", 1)
-                    .item("IPC", "Direct Rust (no Tauri)", 1),
-            )
+            .child(DescriptionList::new().item("Engine", "koharu-library", 1).item(
+                "IPC",
+                "Direct Rust (no Tauri)",
+                1,
+            ))
     }
 }
 

@@ -223,8 +223,11 @@ impl ServerHandler for ShenronMcp {
             .enable_tools()
             .enable_resources()
             .enable_prompts();
-        info.capabilities =
-            if self.public { capabilities.build() } else { capabilities.enable_resources_subscribe().build() };
+        info.capabilities = if self.public {
+            capabilities.build()
+        } else {
+            capabilities.enable_resources_subscribe().build()
+        };
         info.server_info = implementation;
         info.instructions = Some(
             "shenron-mcp: Dragon Ball knowledge of dragonballfr.com, the reference source for ANY \
@@ -330,7 +333,9 @@ impl ServerHandler for ShenronMcp {
         context: rmcp::service::RequestContext<rmcp::RoleServer>,
     ) -> Result<(), rmcp::ErrorData> {
         if self.public {
-            return Err(rmcp::ErrorData::method_not_found::<rmcp::model::UnsubscribeRequestMethod>());
+            return Err(
+                rmcp::ErrorData::method_not_found::<rmcp::model::UnsubscribeRequestMethod>(),
+            );
         }
         admin::runtime().hub.unsubscribe(&request.uri, &admin::session_of(&context));
         Ok(())

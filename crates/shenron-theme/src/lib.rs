@@ -64,7 +64,8 @@ impl M3Spring {
     /// The GPUI spring with the same motion: gpui-base integrates `omega0 = TAU / response`, and a
     /// unit-mass Material spring has `omega0 = sqrt(stiffness)`.
     pub fn to_gpui(self) -> Spring {
-        Spring::new(Duration::from_secs_f32(std::f32::consts::TAU / self.stiffness.sqrt())).with_damping(self.damping)
+        Spring::new(Duration::from_secs_f32(std::f32::consts::TAU / self.stiffness.sqrt()))
+            .with_damping(self.damping)
     }
 }
 
@@ -118,7 +119,8 @@ pub fn init(cx: &mut App, mode: ThemeMode) {
         // Controls (switch thumbs, toggles) move with the fast spatial spring, layout moves with the
         // default one; the pixel tolerance of the stock move spring is kept.
         theme.motion.spring_control = springs.fast_spatial.to_gpui();
-        theme.motion.spring_move = springs.default_spatial.to_gpui().with_epsilon(theme.motion.spring_move.epsilon());
+        theme.motion.spring_move =
+            springs.default_spatial.to_gpui().with_epsilon(theme.motion.spring_move.epsilon());
     });
 }
 

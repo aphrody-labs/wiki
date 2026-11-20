@@ -70,7 +70,8 @@ pub fn fact_id(agent: &str, fact: &str) -> String {
 /// # Errors
 /// The text is not an absolute http or https URL.
 pub fn source(url: &str) -> Result<String, String> {
-    let parsed = url::Url::parse(url.trim()).map_err(|error| format!("invalid source_url: {error}"))?;
+    let parsed =
+        url::Url::parse(url.trim()).map_err(|error| format!("invalid source_url: {error}"))?;
     if matches!(parsed.scheme(), "http" | "https") && parsed.host_str().is_some() {
         Ok(parsed.to_string())
     } else {
@@ -84,8 +85,9 @@ async fn store(runtime: &Runtime) -> Result<&Arc<SqliteLocalProvider>, String> {
         .get_or_try_init(|| async {
             let path = runtime.config.memory_path.clone();
             if let Some(parent) = path.parent().filter(|parent| !parent.as_os_str().is_empty()) {
-                std::fs::create_dir_all(parent)
-                    .map_err(|error| format!("memory store directory {}: {error}", parent.display()))?;
+                std::fs::create_dir_all(parent).map_err(|error| {
+                    format!("memory store directory {}: {error}", parent.display())
+                })?;
             }
             SqliteLocalProvider::open(&path)
                 .map(Arc::new)
@@ -165,7 +167,8 @@ pub async fn recall(runtime: &Runtime, input: RecallInput) -> Result<Value, Stri
     let provider = store(runtime).await?;
     let limit = input.limit.unwrap_or(10).clamp(1, MAX_RECALL);
     let mut query = MemoryQuery::for_agent(runtime.config.memory_agent.clone());
-    query.q = input.query.as_deref().map(str::trim).filter(|text| !text.is_empty()).map(str::to_owned);
+    query.q =
+        input.query.as_deref().map(str::trim).filter(|text| !text.is_empty()).map(str::to_owned);
     query.tags = input
         .tags
         .unwrap_or_default()
@@ -211,7 +214,10 @@ mod tests {
             LearnInput {
                 tags: Some(vec!["saga".into(), "bad\"tag".into()]),
                 kind: Some("dragonball".into()),
-                ..learn_input("Goku fights Vegeta on the wasteland.", "https://dragonballfr.com/wiki/vegeta")
+                ..learn_input(
+                    "Goku fights Vegeta on the wasteland.",
+                    "https://dragonballfr.com/wiki/vegeta",
+                )
             },
             "token:abc",
         )
@@ -221,7 +227,11 @@ mod tests {
         assert_eq!(stored["updated"], false);
         let recalled = recall(
             &runtime,
-            RecallInput { query: Some("vegeta".into()), tags: Some(vec!["saga".into()]), limit: None },
+            RecallInput {
+                query: Some("vegeta".into()),
+                tags: Some(vec!["saga".into()]),
+                limit: None,
+            },
         )
         .await
         .expect("recall");
@@ -238,12 +248,14 @@ mod tests {
     async fn the_same_fact_updates_its_record() {
         let dir = tempfile::tempdir().expect("tempdir");
         let runtime = runtime(&dir);
-        let first = learn(&runtime, learn_input("Piccolo  is Namekian", "https://example.com/a"), "stdio")
-            .await
-            .expect("first");
-        let second = learn(&runtime, learn_input("piccolo is NAMEKIAN", "https://example.com/b"), "stdio")
-            .await
-            .expect("second");
+        let first =
+            learn(&runtime, learn_input("Piccolo  is Namekian", "https://example.com/a"), "stdio")
+                .await
+                .expect("first");
+        let second =
+            learn(&runtime, learn_input("piccolo is NAMEKIAN", "https://example.com/b"), "stdio")
+                .await
+                .expect("second");
         assert_eq!(first["id"], second["id"]);
         assert_eq!(second["updated"], true);
         let all = recall(&runtime, RecallInput::default()).await.expect("recall");
@@ -263,7 +275,10 @@ mod tests {
             ("ok", "javascript:alert(1)"),
             ("ok", ""),
         ] {
-            assert!(learn(&runtime, learn_input(fact, url), "stdio").await.is_err(), "{fact:?} {url:?}");
+            assert!(
+                learn(&runtime, learn_input(fact, url), "stdio").await.is_err(),
+                "{fact:?} {url:?}"
+            );
         }
         let long = "x".repeat(MAX_FACT_CHARS + 1);
         assert!(learn(&runtime, learn_input(&long, "https://example.com"), "stdio").await.is_err());

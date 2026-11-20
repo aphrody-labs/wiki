@@ -464,12 +464,7 @@ mod tests {
         "memory.recall",
     ];
 
-    async fn call_tool(
-        base: &str,
-        extra: &[(&str, &str)],
-        name: &str,
-        arguments: &Value,
-    ) -> Value {
+    async fn call_tool(base: &str, extra: &[(&str, &str)], name: &str, arguments: &Value) -> Value {
         let client = client();
         let session = initialize(&client, base, extra).await.expect("session");
         let mut request = post(&client, base, session.as_deref()).json(&json!({
@@ -536,10 +531,12 @@ mod tests {
         assert_eq!(write["result"]["isError"], true, "{write}");
         assert!(text_of(&write).contains("confirm: true"), "{write}");
         let insert =
-            call_tool(&base, &auth, "db.query", &json!({ "sql": "INSERT INTO t VALUES (1)" })).await;
+            call_tool(&base, &auth, "db.query", &json!({ "sql": "INSERT INTO t VALUES (1)" }))
+                .await;
         assert_eq!(insert["result"]["isError"], true, "{insert}");
         assert!(text_of(&insert).contains("read-only"), "{insert}");
-        let multi = call_tool(&base, &auth, "db.query", &json!({ "sql": "SELECT 1; SELECT 2" })).await;
+        let multi =
+            call_tool(&base, &auth, "db.query", &json!({ "sql": "SELECT 1; SELECT 2" })).await;
         assert_eq!(multi["result"]["isError"], true, "{multi}");
         assert!(text_of(&multi).contains("statements"), "{multi}");
         let redis = call_tool(&base, &auth, "redis.del", &json!({ "keys": ["k"] })).await;

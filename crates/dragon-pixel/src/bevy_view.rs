@@ -425,11 +425,8 @@ fn fighter_look(game: &DragonPixelEngineCore, side: Side, piece: Piece) -> Look 
     };
     // A defeated fighter lies on the ground, head away from the side it was facing.
     let lying = Quat::from_rotation_z(-facing * std::f32::consts::FRAC_PI_2);
-    let head_base = if defeated {
-        base + Vec3::new(-facing * 0.95, 0.24, 0.0)
-    } else {
-        base + Vec3::Y * 1.5
-    };
+    let head_base =
+        if defeated { base + Vec3::new(-facing * 0.95, 0.24, 0.0) } else { base + Vec3::Y * 1.5 };
     let hair_color = if fighter.form_level > 0 && hair_follows_form(fighter.id) {
         rgba(aura_color)
     } else {

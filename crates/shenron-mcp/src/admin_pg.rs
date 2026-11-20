@@ -8,7 +8,9 @@
 
 use std::time::{Duration, Instant};
 
-use deadpool_postgres::{ManagerConfig, Pool, PoolConfig, RecyclingMethod, Runtime as PoolRuntime, Timeouts};
+use deadpool_postgres::{
+    ManagerConfig, Pool, PoolConfig, RecyclingMethod, Runtime as PoolRuntime, Timeouts,
+};
 use rmcp::schemars::{self, JsonSchema};
 use serde::{Deserialize, Serialize};
 use serde_json::{Value, json};
@@ -73,7 +75,8 @@ pub struct ExplainInput {
 fn failure(error: &tokio_postgres::Error) -> String {
     match error.as_db_error() {
         Some(db) => {
-            let mut message = format!("{}: {} (SQLSTATE {})", db.severity(), db.message(), db.code().code());
+            let mut message =
+                format!("{}: {} (SQLSTATE {})", db.severity(), db.message(), db.code().code());
             if let Some(detail) = db.detail() {
                 message.push_str(&format!("; {detail}"));
             }
@@ -94,7 +97,8 @@ async fn pool(runtime: &Runtime) -> Result<&Pool, String> {
     runtime
         .pg
         .get_or_try_init(|| async {
-            let url = runtime.config.database_url.clone().ok_or_else(|| NOT_CONFIGURED.to_owned())?;
+            let url =
+                runtime.config.database_url.clone().ok_or_else(|| NOT_CONFIGURED.to_owned())?;
             let mut config = deadpool_postgres::Config::new();
             config.url = Some(url);
             config.application_name = Some("shenron-mcp".to_owned());
@@ -114,7 +118,8 @@ async fn pool(runtime: &Runtime) -> Result<&Pool, String> {
 }
 
 fn timeout_ms(config: &Config, requested: Option<u64>) -> u64 {
-    requested.map_or(config.statement_timeout_ms, |value| value.clamp(100, config.statement_timeout_ms))
+    requested
+        .map_or(config.statement_timeout_ms, |value| value.clamp(100, config.statement_timeout_ms))
 }
 
 /// The session limits every transaction starts with.
@@ -141,7 +146,9 @@ pub async fn schema(runtime: &Runtime, input: SchemaInput) -> Result<Value, Stri
         .start()
         .await
         .map_err(|error| failure(&error))?;
-    tx.batch_execute(&limits_sql(timeout_ms(config, None))).await.map_err(|error| failure(&error))?;
+    tx.batch_execute(&limits_sql(timeout_ms(config, None)))
+        .await
+        .map_err(|error| failure(&error))?;
     let sql = "
 SELECT to_jsonb(r) FROM (
   SELECT n.nspname AS schema, c.relname AS name,
@@ -202,11 +209,8 @@ pub async fn query(runtime: &Runtime, input: QueryInput) -> Result<Value, String
     tx.batch_execute(&limits_sql(timeout)).await.map_err(|error| failure(&error))?;
     // The statement is a subquery, so every column type is rendered by PostgreSQL itself and the
     // row cap is applied server side (one extra row tells whether the result was cut).
-    let wrapped = format!(
-        "SELECT to_jsonb(q) FROM (\n{}\n) AS q LIMIT {}",
-        statement.text,
-        limit + 1
-    );
+    let wrapped =
+        format!("SELECT to_jsonb(q) FROM (\n{}\n) AS q LIMIT {}", statement.text, limit + 1);
     let rows = tx.query(wrapped.as_str(), &[]).await.map_err(|error| failure(&error))?;
     let values = as_values(&rows)?;
     tx.rollback().await.ok();
@@ -223,7 +227,12 @@ pub async fn query(runtime: &Runtime, input: QueryInput) -> Result<Value, String
 }
 
 /// `db.exec`: one write in a transaction that also holds its audit row.
-pub async fn exec(runtime: &Runtime, input: ExecInput, caller: &str, args_hash: &str) -> Result<Value, String> {
+pub async fn exec(
+    runtime: &Runtime,
+    input: ExecInput,
+    caller: &str,
+    args_hash: &str,
+) -> Result<Value, String> {
     require_confirm(input.confirm, "db.exec")?;
     let config = &runtime.config;
     let statement = admin_sql::exec_statement(&input.sql)?;
@@ -233,7 +242,8 @@ pub async fn exec(runtime: &Runtime, input: ExecInput, caller: &str, args_hash: 
     let mut client = pool(runtime).await?.get().await.map_err(|error| pool_failure(&error))?;
     let tx = client.transaction().await.map_err(|error| failure(&error))?;
     tx.batch_execute(&limits_sql(timeout)).await.map_err(|error| failure(&error))?;
-    let affected = tx.execute(statement.text.as_str(), &[]).await.map_err(|error| failure(&error))?;
+    let affected =
+        tx.execute(statement.text.as_str(), &[]).await.map_err(|error| failure(&error))?;
     if dry_run {
         tx.rollback().await.map_err(|error| failure(&error))?;
         return Ok(json!({ "affected_rows": affected, "committed": false, "dry_run": true }));
@@ -262,7 +272,8 @@ pub async fn explain(runtime: &Runtime, input: ExplainInput) -> Result<Value, St
     let config = &runtime.config;
     let statement = admin_sql::explain_target(&input.sql)?;
     let timeout = timeout_ms(config, input.timeout_ms);
-    let options = if input.analyze == Some(true) { "ANALYZE, BUFFERS, FORMAT JSON" } else { "FORMAT JSON" };
+    let options =
+        if input.analyze == Some(true) { "ANALYZE, BUFFERS, FORMAT JSON" } else { "FORMAT JSON" };
     let mut client = pool(runtime).await?.get().await.map_err(|error| pool_failure(&error))?;
     let tx = client
         .build_transaction()
@@ -292,7 +303,9 @@ pub async fn table_resource(runtime: &Runtime, name: &str) -> Result<Value, Stri
         .start()
         .await
         .map_err(|error| failure(&error))?;
-    tx.batch_execute(&limits_sql(timeout_ms(config, None))).await.map_err(|error| failure(&error))?;
+    tx.batch_execute(&limits_sql(timeout_ms(config, None)))
+        .await
+        .map_err(|error| failure(&error))?;
     let exists = tx
         .query_one("SELECT to_regclass($1)::text", &[&ident])
         .await
@@ -352,7 +365,9 @@ pub async fn record_audit(runtime: &Runtime, record: &AuditRecord) {
     };
     match tokio::time::timeout(Duration::from_secs(3), write).await {
         Ok(Ok(())) => {},
-        Ok(Err(error)) => tracing::warn!(target: "shenron_mcp::audit", %error, "audit row not written"),
+        Ok(Err(error)) => {
+            tracing::warn!(target: "shenron_mcp::audit", %error, "audit row not written")
+        },
         Err(_) => tracing::warn!(target: "shenron_mcp::audit", "audit row timed out"),
     }
 }
@@ -385,9 +400,10 @@ mod tests {
     #[tokio::test]
     async fn db_query_on_a_read_reaches_the_connection_step() {
         let runtime = offline();
-        let error = query(&runtime, QueryInput { sql: "SELECT 1".to_owned(), ..Default::default() })
-            .await
-            .expect_err("no database configured");
+        let error =
+            query(&runtime, QueryInput { sql: "SELECT 1".to_owned(), ..Default::default() })
+                .await
+                .expect_err("no database configured");
         assert!(error.contains("not configured"), "{error}");
     }
 
@@ -416,7 +432,11 @@ mod tests {
         assert!(error.contains("transaction control"), "{error}");
         let error = exec(
             &runtime,
-            ExecInput { sql: "DELETE FROM t; DELETE FROM u".to_owned(), confirm: Some(true), ..Default::default() },
+            ExecInput {
+                sql: "DELETE FROM t; DELETE FROM u".to_owned(),
+                confirm: Some(true),
+                ..Default::default()
+            },
             "stdio",
             "hash",
         )

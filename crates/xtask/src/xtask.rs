@@ -183,7 +183,9 @@ fn scripts(root: &Path, orphans_only: bool) -> Result<ExitCode> {
         .iter()
         .map(|blob| blob.path.as_str())
         .filter(|path| path.starts_with("scripts/") && !path.ends_with(".test.ts"))
-        .filter(|path| extension(path).is_some_and(|extension| SCRIPT_EXTENSIONS.contains(&extension)))
+        .filter(|path| {
+            extension(path).is_some_and(|extension| SCRIPT_EXTENSIONS.contains(&extension))
+        })
         .collect();
     let mut corpus = Vec::new();
     for blob in &blobs {
@@ -204,7 +206,8 @@ fn scripts(root: &Path, orphans_only: bool) -> Result<ExitCode> {
         let stem = script.rsplit('/').next().unwrap_or(script);
         let stem = stem.rsplit_once('.').map_or(stem, |(stem, _)| stem);
         let relative = script.trim_start_matches("scripts/");
-        let needles = [script.to_string(), relative.to_string(), format!("/{stem}."), format!("./{stem}\"")];
+        let needles =
+            [script.to_string(), relative.to_string(), format!("/{stem}."), format!("./{stem}\"")];
         let kinds: BTreeSet<&str> = corpus
             .iter()
             .filter(|(path, _)| path != script)

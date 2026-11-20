@@ -23,11 +23,7 @@ use std::{
 };
 
 use futures_util::StreamExt as _;
-use rmcp::{
-    Peer, RoleServer,
-    model::ResourceUpdatedNotificationParam,
-    service::SubscriptionSink,
-};
+use rmcp::{Peer, RoleServer, model::ResourceUpdatedNotificationParam, service::SubscriptionSink};
 use serde_json::{Value, json};
 use tokio::sync::mpsc;
 use tokio_postgres::{AsyncMessage, NoTls};
@@ -305,16 +301,18 @@ async fn session(
 ) -> Result<(), String> {
     let url = runtime.config.database_url.clone().ok_or("no database configured")?;
     let hub = &runtime.hub;
-    let (client, mut connection) = tokio_postgres::connect(&url, NoTls)
-        .await
-        .map_err(|error| format!("connect: {error}"))?;
+    let (client, mut connection) =
+        tokio_postgres::connect(&url, NoTls).await.map_err(|error| format!("connect: {error}"))?;
     let (notifications, mut inbox) = mpsc::unbounded_channel::<(String, String)>();
     let mut driver = tokio::spawn(async move {
         let mut messages = futures_util::stream::poll_fn(move |cx| connection.poll_message(cx));
         while let Some(message) = messages.next().await {
             match message {
                 Ok(AsyncMessage::Notification(note)) => {
-                    if notifications.send((note.channel().to_owned(), note.payload().to_owned())).is_err() {
+                    if notifications
+                        .send((note.channel().to_owned(), note.payload().to_owned()))
+                        .is_err()
+                    {
                         break;
                     }
                 },

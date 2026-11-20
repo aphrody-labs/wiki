@@ -24,7 +24,8 @@ pub const SEARCH_PATH: &str = "/api/local/rag/search";
 /// Environment variable naming another lexicon file (same JSON shape).
 pub const LEXICON_ENV: &str = "SHENRON_LEXIQUE";
 
-const EMBEDDED_LEXICON: &str = include_str!(concat!(env!("SHENRON_DATA_DIR"), "/lexique-db-canonique.json"));
+const EMBEDDED_LEXICON: &str =
+    include_str!(concat!(env!("SHENRON_DATA_DIR"), "/lexique-db-canonique.json"));
 const MAX_LEXICON_ENTRIES: usize = 20;
 
 /// One attested term of the lexicon.

@@ -94,7 +94,10 @@ async fn connection(runtime: &Runtime) -> Result<ConnectionManager, String> {
     Ok(manager.clone())
 }
 
-async fn call<T: redis::FromRedisValue>(runtime: &Runtime, command: &redis::Cmd) -> Result<T, String> {
+async fn call<T: redis::FromRedisValue>(
+    runtime: &Runtime,
+    command: &redis::Cmd,
+) -> Result<T, String> {
     let mut connection = connection(runtime).await?;
     tokio::time::timeout(
         Duration::from_millis(runtime.config.redis_timeout_ms),
@@ -115,7 +118,8 @@ fn text_or_hex(bytes: Vec<u8>) -> Value {
         Ok(text) => Value::String(text),
         Err(error) => {
             let bytes = error.into_bytes();
-            let preview: String = bytes.iter().take(2048).map(|byte| format!("{byte:02x}")).collect();
+            let preview: String =
+                bytes.iter().take(2048).map(|byte| format!("{byte:02x}")).collect();
             json!({ "binary_hex": preview, "bytes": bytes.len() })
         },
     }
@@ -256,7 +260,8 @@ pub async fn get(runtime: &Runtime, input: KeyInput) -> Result<Value, String> {
         "string" => {
             let length: i64 = call(runtime, redis::cmd("STRLEN").arg(key)).await?;
             let last = i64::try_from(config.max_bytes).unwrap_or(i64::MAX) - 1;
-            let bytes: Vec<u8> = call(runtime, redis::cmd("GETRANGE").arg(key).arg(0).arg(last)).await?;
+            let bytes: Vec<u8> =
+                call(runtime, redis::cmd("GETRANGE").arg(key).arg(0).arg(last)).await?;
             let cut = usize::try_from(length).unwrap_or(0) > bytes.len();
             (length, text_or_hex(bytes), cut)
         },
@@ -266,7 +271,8 @@ pub async fn get(runtime: &Runtime, input: KeyInput) -> Result<Value, String> {
                 call(runtime, redis::cmd("HGETALL").arg(key)).await?
             } else {
                 let (_, page): (String, redis::Value) =
-                    call(runtime, redis::cmd("HSCAN").arg(key).arg(0).arg("COUNT").arg(count)).await?;
+                    call(runtime, redis::cmd("HSCAN").arg(key).arg(0).arg("COUNT").arg(count))
+                        .await?;
                 page
             };
             (size, flat_to_object(to_json(reply)), size > count)
@@ -283,7 +289,8 @@ pub async fn get(runtime: &Runtime, input: KeyInput) -> Result<Value, String> {
                 call(runtime, redis::cmd("SMEMBERS").arg(key)).await?
             } else {
                 let (_, page): (String, redis::Value) =
-                    call(runtime, redis::cmd("SSCAN").arg(key).arg(0).arg("COUNT").arg(count)).await?;
+                    call(runtime, redis::cmd("SSCAN").arg(key).arg(0).arg("COUNT").arg(count))
+                        .await?;
                 page
             };
             (size, to_json(reply), size > count)
@@ -299,15 +306,20 @@ pub async fn get(runtime: &Runtime, input: KeyInput) -> Result<Value, String> {
         },
         "stream" => {
             let size: i64 = call(runtime, redis::cmd("XLEN").arg(key)).await?;
-            let reply: redis::Value =
-                call(runtime, redis::cmd("XRANGE").arg(key).arg("-").arg("+").arg("COUNT").arg(count)).await?;
+            let reply: redis::Value = call(
+                runtime,
+                redis::cmd("XRANGE").arg(key).arg("-").arg("+").arg("COUNT").arg(count),
+            )
+            .await?;
             (size, to_json(reply), size > count)
         },
         _ => return Ok(json!({ "key": key, "exists": true, "type": kind, "value": null })),
     };
     let value = bounded(value, config.max_bytes);
     let truncated = truncated || value.get("truncated") == Some(&Value::Bool(true));
-    Ok(json!({ "key": key, "exists": true, "type": kind, "size": size, "value": value, "truncated": truncated }))
+    Ok(
+        json!({ "key": key, "exists": true, "type": kind, "size": size, "value": value, "truncated": truncated }),
+    )
 }
 
 /// `redis.scan`: keys matching a pattern, with the cursor to continue.
@@ -389,33 +401,41 @@ mod tests {
     #[tokio::test]
     async fn redis_writes_need_confirm_before_connecting() {
         let runtime = offline();
-        let error = set(&runtime, SetInput { key: "k".into(), value: "v".into(), ..Default::default() })
-            .await
-            .expect_err("refused");
+        let error =
+            set(&runtime, SetInput { key: "k".into(), value: "v".into(), ..Default::default() })
+                .await
+                .expect_err("refused");
         assert!(error.contains("confirm: true"), "{error}");
         let error = del(&runtime, DelInput { keys: vec!["k".into()], confirm: Some(false) })
             .await
             .expect_err("refused");
         assert!(error.contains("confirm: true"), "{error}");
-        let error = del(&runtime, DelInput { keys: vec![], confirm: Some(true) }).await.expect_err("empty");
+        let error =
+            del(&runtime, DelInput { keys: vec![], confirm: Some(true) }).await.expect_err("empty");
         assert!(error.contains("at least one key"), "{error}");
         let many = (0..=MAX_DEL_KEYS).map(|n| format!("k{n}")).collect();
-        let error = del(&runtime, DelInput { keys: many, confirm: Some(true) }).await.expect_err("cap");
+        let error =
+            del(&runtime, DelInput { keys: many, confirm: Some(true) }).await.expect_err("cap");
         assert!(error.contains("at most"), "{error}");
     }
 
     #[tokio::test]
     async fn redis_reads_report_a_missing_configuration() {
         let runtime = offline();
-        let error = get(&runtime, KeyInput { key: "k".into(), limit: None }).await.expect_err("offline");
+        let error =
+            get(&runtime, KeyInput { key: "k".into(), limit: None }).await.expect_err("offline");
         assert!(error.contains("not configured"), "{error}");
-        let error = info(&runtime, InfoInput { section: Some("a b".into()) }).await.expect_err("bad section");
+        let error = info(&runtime, InfoInput { section: Some("a b".into()) })
+            .await
+            .expect_err("bad section");
         assert!(error.contains("invalid INFO section"), "{error}");
     }
 
     #[test]
     fn info_text_is_parsed_into_sections() {
-        let parsed = parse_info("# Server\r\nredis_version:8.0.1\r\nos:Linux\r\n\r\n# Keyspace\r\ndb0:keys=3,expires=0\r\n");
+        let parsed = parse_info(
+            "# Server\r\nredis_version:8.0.1\r\nos:Linux\r\n\r\n# Keyspace\r\ndb0:keys=3,expires=0\r\n",
+        );
         assert_eq!(parsed["server"]["redis_version"], "8.0.1");
         assert_eq!(parsed["keyspace"]["db0"], "keys=3,expires=0");
     }

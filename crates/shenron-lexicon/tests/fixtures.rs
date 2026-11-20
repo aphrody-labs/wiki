@@ -12,8 +12,7 @@ use shenron_lexicon::{
 };
 
 fn fixture<T: for<'de> Deserialize<'de>>(name: &str) -> T {
-    let path =
-        PathBuf::from(env!("SHENRON_DATA_DIR")).join("lexicon/fixtures").join(name);
+    let path = PathBuf::from(env!("SHENRON_DATA_DIR")).join("lexicon/fixtures").join(name);
     let text = std::fs::read_to_string(&path)
         .unwrap_or_else(|error| panic!("{}: {error}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|error| panic!("{}: {error}", path.display()))

@@ -181,7 +181,10 @@ mod tests {
 
     #[test]
     fn test_deserialize_manifest() {
-        let manifest_raw = include_str!(concat!(env!("SHENRON_DATA_DIR"), "/games/dragon-ball-sprites-manifest.json"));
+        let manifest_raw = include_str!(concat!(
+            env!("SHENRON_DATA_DIR"),
+            "/games/dragon-ball-sprites-manifest.json"
+        ));
         let manifest = SpriteManifest::from_json_str(manifest_raw)
             .expect("Failed to deserialize dragon-ball-sprites-manifest.json");
         assert_eq!(manifest.version, "1.0.0");

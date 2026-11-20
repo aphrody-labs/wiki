@@ -23,7 +23,8 @@ use crate::{
     dragonball_tools::err,
 };
 
-const ADMIN_ONLY: &str = "the data-plane tools require elevated access (bearer token or allow-listed IP)";
+const ADMIN_ONLY: &str =
+    "the data-plane tools require elevated access (bearer token or allow-listed IP)";
 
 fn denied() -> CallToolResult {
     err(ADMIN_ONLY)
@@ -52,8 +53,14 @@ impl ShenronMcp {
         }
         let args = input.clone();
         let summary = format!("{:?}.{:?}", input.schema, input.table);
-        admin::run(caller_of(&context), "db.schema", &args, summary, admin_pg::schema(runtime(), input))
-            .await
+        admin::run(
+            caller_of(&context),
+            "db.schema",
+            &args,
+            summary,
+            admin_pg::schema(runtime(), input),
+        )
+        .await
     }
 
     #[tool(
@@ -77,7 +84,14 @@ impl ShenronMcp {
         }
         let args = input.clone();
         let summary = clip(&input.sql, 300);
-        admin::run(caller_of(&context), "db.query", &args, summary, admin_pg::query(runtime(), input)).await
+        admin::run(
+            caller_of(&context),
+            "db.query",
+            &args,
+            summary,
+            admin_pg::query(runtime(), input),
+        )
+        .await
     }
 
     #[tool(
@@ -128,8 +142,14 @@ impl ShenronMcp {
         }
         let args = input.clone();
         let summary = clip(&input.sql, 300);
-        admin::run(caller_of(&context), "db.explain", &args, summary, admin_pg::explain(runtime(), input))
-            .await
+        admin::run(
+            caller_of(&context),
+            "db.explain",
+            &args,
+            summary,
+            admin_pg::explain(runtime(), input),
+        )
+        .await
     }
 
     #[tool(
@@ -153,8 +173,14 @@ impl ShenronMcp {
         }
         let args = input.clone();
         let summary = format!("{:?}", input.section);
-        admin::run(caller_of(&context), "redis.info", &args, summary, admin_redis::info(runtime(), input))
-            .await
+        admin::run(
+            caller_of(&context),
+            "redis.info",
+            &args,
+            summary,
+            admin_redis::info(runtime(), input),
+        )
+        .await
     }
 
     #[tool(
@@ -178,7 +204,14 @@ impl ShenronMcp {
         }
         let args = input.clone();
         let summary = clip(&input.key, 200);
-        admin::run(caller_of(&context), "redis.get", &args, summary, admin_redis::get(runtime(), input)).await
+        admin::run(
+            caller_of(&context),
+            "redis.get",
+            &args,
+            summary,
+            admin_redis::get(runtime(), input),
+        )
+        .await
     }
 
     #[tool(
@@ -202,8 +235,14 @@ impl ShenronMcp {
         }
         let args = input.clone();
         let summary = clip(input.pattern.as_deref().unwrap_or("*"), 200);
-        admin::run(caller_of(&context), "redis.scan", &args, summary, admin_redis::scan(runtime(), input))
-            .await
+        admin::run(
+            caller_of(&context),
+            "redis.scan",
+            &args,
+            summary,
+            admin_redis::scan(runtime(), input),
+        )
+        .await
     }
 
     #[tool(
@@ -227,7 +266,14 @@ impl ShenronMcp {
         }
         let args = input.clone();
         let summary = clip(&input.key, 200);
-        admin::run(caller_of(&context), "redis.ttl", &args, summary, admin_redis::ttl(runtime(), input)).await
+        admin::run(
+            caller_of(&context),
+            "redis.ttl",
+            &args,
+            summary,
+            admin_redis::ttl(runtime(), input),
+        )
+        .await
     }
 
     #[tool(
@@ -252,7 +298,14 @@ impl ShenronMcp {
         // The value is neither hashed nor kept in the audit: only the key and the options.
         let args = SetInput { value: String::new(), ..input.clone() };
         let summary = clip(&input.key, 200);
-        admin::run(caller_of(&context), "redis.set", &args, summary, admin_redis::set(runtime(), input)).await
+        admin::run(
+            caller_of(&context),
+            "redis.set",
+            &args,
+            summary,
+            admin_redis::set(runtime(), input),
+        )
+        .await
     }
 
     #[tool(
@@ -276,7 +329,14 @@ impl ShenronMcp {
         }
         let args = input.clone();
         let summary = clip(&input.keys.join(" "), 300);
-        admin::run(caller_of(&context), "redis.del", &args, summary, admin_redis::del(runtime(), input)).await
+        admin::run(
+            caller_of(&context),
+            "redis.del",
+            &args,
+            summary,
+            admin_redis::del(runtime(), input),
+        )
+        .await
     }
 
     #[tool(
@@ -326,8 +386,14 @@ impl ShenronMcp {
         }
         let args = input.clone();
         let summary = clip(input.query.as_deref().unwrap_or(""), 200);
-        admin::run(caller_of(&context), "memory.recall", &args, summary, admin_memory::recall(runtime(), input))
-            .await
+        admin::run(
+            caller_of(&context),
+            "memory.recall",
+            &args,
+            summary,
+            admin_memory::recall(runtime(), input),
+        )
+        .await
     }
 }
 

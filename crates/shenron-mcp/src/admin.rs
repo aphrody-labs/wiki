@@ -184,7 +184,13 @@ impl Config {
             database_url: first(&["SHENRON_MCP_DATABASE_URL", "DATABASE_URL"]),
             redis_url: first(&["SHENRON_MCP_REDIS_URL", "REDIS_URL"]),
             pool_size: number(&get, "SHENRON_MCP_DB_POOL_SIZE", 4, 1, 32),
-            statement_timeout_ms: number(&get, "SHENRON_MCP_DB_STATEMENT_TIMEOUT_MS", 15_000, 100, 120_000),
+            statement_timeout_ms: number(
+                &get,
+                "SHENRON_MCP_DB_STATEMENT_TIMEOUT_MS",
+                15_000,
+                100,
+                120_000,
+            ),
             max_rows: number(&get, "SHENRON_MCP_DB_MAX_ROWS", 500, 1, 5000),
             max_bytes: number(&get, "SHENRON_MCP_MAX_RESPONSE_BYTES", 262_144, 1024, 4 << 20),
             redis_timeout_ms: number(&get, "SHENRON_MCP_REDIS_TIMEOUT_MS", 5000, 100, 60_000),
@@ -194,7 +200,8 @@ impl Config {
             listen_channels,
             listen_explicit,
             memory_path,
-            memory_agent: get("SHENRON_MCP_MEMORY_AGENT").unwrap_or_else(|| "shenron-mcp".to_owned()),
+            memory_agent: get("SHENRON_MCP_MEMORY_AGENT")
+                .unwrap_or_else(|| "shenron-mcp".to_owned()),
         }
     }
 
@@ -352,7 +359,9 @@ where
 {
     let runtime = runtime();
     let hash = args_hash(args);
-    if let Err(message) = runtime.limiter.check(&caller, runtime.config.rate_per_minute, Instant::now()) {
+    if let Err(message) =
+        runtime.limiter.check(&caller, runtime.config.rate_per_minute, Instant::now())
+    {
         tracing::warn!(target: "shenron_mcp::audit", %caller, tool, args_hash = %hash, "rate limited");
         return dragonball_tools::err(message);
     }

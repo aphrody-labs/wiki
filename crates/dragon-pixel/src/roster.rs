@@ -1122,8 +1122,12 @@ mod story_tests {
         for chapter in &chapters[..15] {
             assert_eq!(chapter.manga_volume_id, Some(81 + chapter.tome), "chapter {}", chapter.id);
         }
-        let beerus: Vec<_> = chapters.iter().filter(|chapter| chapter.enemy_fighter == FighterId::Beerus).collect();
-        assert_eq!(beerus.iter().map(|chapter| chapter.episode_id).collect::<Vec<_>>(), [Some(876), Some(879), Some(880)]);
+        let beerus: Vec<_> =
+            chapters.iter().filter(|chapter| chapter.enemy_fighter == FighterId::Beerus).collect();
+        assert_eq!(
+            beerus.iter().map(|chapter| chapter.episode_id).collect::<Vec<_>>(),
+            [Some(876), Some(879), Some(880)]
+        );
     }
 
     #[test]
@@ -1131,7 +1135,11 @@ mod story_tests {
         for chapter in get_story_chapters() {
             if let Some(level) = chapter.target_transformation {
                 let forms = get_fighter_def(chapter.player_fighter).forms;
-                assert!(forms.iter().any(|form| form.level == level), "chapter {} asks for form {level}", chapter.id);
+                assert!(
+                    forms.iter().any(|form| form.level == level),
+                    "chapter {} asks for form {level}",
+                    chapter.id
+                );
             }
         }
     }

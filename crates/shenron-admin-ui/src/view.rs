@@ -1,8 +1,5 @@
 //! Pure GPUI Kit admin workspace view (desktop + web).
 
-use gpui_kit::{
-    Context, IntoElement, ParentElement, Render, Styled, Window, div, px,
-};
 use gpui_kit::base::StyledExt;
 use gpui_kit::component::alert::Alert;
 use gpui_kit::component::button::Button;
@@ -10,6 +7,7 @@ use gpui_kit::component::description_list::DescriptionList;
 use gpui_kit::component::tag::Tag;
 use gpui_kit::component::{ActiveTheme, h_flex, v_flex};
 use gpui_kit::prelude::FluentBuilder;
+use gpui_kit::{Context, IntoElement, ParentElement, Render, Styled, Window, div, px};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct AdminPanelSummary {
@@ -48,11 +46,7 @@ impl AdminWorkspace {
             },
         ];
         let selected_id = panels.first().map(|p| p.id.clone());
-        Self {
-            panels,
-            selected_id,
-            error_message: None,
-        }
+        Self { panels, selected_id, error_message: None }
     }
 
     pub fn select_panel(&mut self, id: String, cx: &mut Context<Self>) {

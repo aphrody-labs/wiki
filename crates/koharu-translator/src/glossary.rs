@@ -350,8 +350,7 @@ mod tests {
     /// The legacy derived file still loads (consumers of `data/lexique-db-canonique.json`).
     #[test]
     fn the_legacy_lexicon_file_loads() {
-        let path =
-            Path::new(env!("SHENRON_DATA_DIR")).join("lexique-db-canonique.json");
+        let path = Path::new(env!("SHENRON_DATA_DIR")).join("lexique-db-canonique.json");
         if !path.is_file() {
             return;
         }

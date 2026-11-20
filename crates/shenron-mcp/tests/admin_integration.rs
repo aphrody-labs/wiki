@@ -34,7 +34,8 @@ fn pg_runtime(audit_table: &str) -> Option<Runtime> {
 }
 
 async fn admin_client(url: &str) -> tokio_postgres::Client {
-    let (client, connection) = tokio_postgres::connect(url, tokio_postgres::NoTls).await.expect("connect");
+    let (client, connection) =
+        tokio_postgres::connect(url, tokio_postgres::NoTls).await.expect("connect");
     tokio::spawn(async move {
         let _ = connection.await;
     });
@@ -50,9 +51,12 @@ fn exec_input(sql: &str, confirm: bool) -> ExecInput {
 }
 
 async fn count(runtime: &Runtime, table: &str) -> i64 {
-    let rows = admin_pg::query(runtime, QueryInput { limit: Some(1), ..query_input(&format!("SELECT count(*) AS n FROM {table}")) })
-        .await
-        .expect("count");
+    let rows = admin_pg::query(
+        runtime,
+        QueryInput { limit: Some(1), ..query_input(&format!("SELECT count(*) AS n FROM {table}")) },
+    )
+    .await
+    .expect("count");
     rows["rows"][0]["n"].as_i64().expect("n")
 }
 
@@ -75,9 +79,14 @@ async fn postgres_tools_enforce_their_guards_and_audit_writes() {
         .expect("fixture");
 
     // Writes need confirm; with it they commit and leave their audit row in the same transaction.
-    let refused = admin_pg::exec(&runtime, exec_input("INSERT INTO mcp_it_items (name) VALUES ('a')", false), "token:t", "h")
-        .await
-        .expect_err("confirm");
+    let refused = admin_pg::exec(
+        &runtime,
+        exec_input("INSERT INTO mcp_it_items (name) VALUES ('a')", false),
+        "token:t",
+        "h",
+    )
+    .await
+    .expect_err("confirm");
     assert!(refused.contains("confirm: true"));
     assert_eq!(count(&runtime, "mcp_it_items").await, 0);
     let done = admin_pg::exec(
@@ -91,8 +100,16 @@ async fn postgres_tools_enforce_their_guards_and_audit_writes() {
     assert_eq!(done["affected_rows"], 8);
     assert_eq!(done["committed"], true);
     assert_eq!(done["audit"], "inline");
-    let audit = admin_pg::query(&runtime, query_input("SELECT caller, tool, args_hash, ok FROM mcp_it_audit")).await.expect("audit");
-    assert_eq!(audit["rows"][0], json!({ "caller": "token:t", "tool": "db.exec", "args_hash": "hash-1", "ok": true }));
+    let audit = admin_pg::query(
+        &runtime,
+        query_input("SELECT caller, tool, args_hash, ok FROM mcp_it_audit"),
+    )
+    .await
+    .expect("audit");
+    assert_eq!(
+        audit["rows"][0],
+        json!({ "caller": "token:t", "tool": "db.exec", "args_hash": "hash-1", "ok": true })
+    );
 
     // A dry run reports the effect and persists nothing; a failing statement leaves nothing behind.
     let dry = admin_pg::exec(
@@ -106,15 +123,34 @@ async fn postgres_tools_enforce_their_guards_and_audit_writes() {
     assert_eq!(dry["affected_rows"], 8);
     assert_eq!(dry["committed"], false);
     assert_eq!(count(&runtime, "mcp_it_items").await, 8);
-    assert!(admin_pg::exec(&runtime, exec_input("INSERT INTO mcp_it_items (name) VALUES (NULL)", true), "t", "h").await.is_err());
+    assert!(
+        admin_pg::exec(
+            &runtime,
+            exec_input("INSERT INTO mcp_it_items (name) VALUES (NULL)", true),
+            "t",
+            "h"
+        )
+        .await
+        .is_err()
+    );
     assert_eq!(count(&runtime, "mcp_it_items").await, 8);
 
     // Reads: row cap (limit 5 from the environment), JSON rows, read-only enforcement by the server.
-    let capped = admin_pg::query(&runtime, query_input("SELECT id, name, meta FROM mcp_it_items ORDER BY id")).await.expect("query");
+    let capped = admin_pg::query(
+        &runtime,
+        query_input("SELECT id, name, meta FROM mcp_it_items ORDER BY id"),
+    )
+    .await
+    .expect("query");
     assert_eq!(capped["rows"].as_array().expect("rows").len(), 5);
     assert_eq!(capped["truncated"], true);
     assert_eq!(capped["rows"][0]["meta"], json!({ "k": 1 }));
-    let small = admin_pg::query(&runtime, QueryInput { limit: Some(2), ..query_input("TABLE mcp_it_items") }).await.expect("table");
+    let small = admin_pg::query(
+        &runtime,
+        QueryInput { limit: Some(2), ..query_input("TABLE mcp_it_items") },
+    )
+    .await
+    .expect("table");
     assert_eq!(small["row_count"], 2);
     for sql in [
         "INSERT INTO mcp_it_items (name) VALUES ('x')",
@@ -125,22 +161,60 @@ async fn postgres_tools_enforce_their_guards_and_audit_writes() {
         assert!(admin_pg::query(&runtime, query_input(sql)).await.is_err(), "must refuse: {sql}");
     }
     assert_eq!(count(&runtime, "mcp_it_items").await, 8);
-    let slow = admin_pg::query(&runtime, QueryInput { timeout_ms: Some(200), ..query_input("SELECT pg_sleep(5)") }).await.expect_err("timeout");
+    let slow = admin_pg::query(
+        &runtime,
+        QueryInput { timeout_ms: Some(200), ..query_input("SELECT pg_sleep(5)") },
+    )
+    .await
+    .expect_err("timeout");
     assert!(slow.contains("statement timeout") || slow.contains("57014"), "{slow}");
 
     // Schema and plan.
-    let schema = admin_pg::schema(&runtime, SchemaInput { table: Some("mcp_it_items".into()), ..Default::default() }).await.expect("schema");
+    let schema = admin_pg::schema(
+        &runtime,
+        SchemaInput { table: Some("mcp_it_items".into()), ..Default::default() },
+    )
+    .await
+    .expect("schema");
     let relation = &schema["relations"][0];
     assert_eq!(relation["name"], "mcp_it_items");
     assert_eq!(relation["kind"], "table");
     assert_eq!(relation["columns"].as_array().expect("columns").len(), 3);
     assert!(relation["primary_key"].as_str().expect("pk").contains("PRIMARY KEY"));
     assert!(relation["indexes"].as_array().expect("indexes").len() >= 2);
-    let plan = admin_pg::explain(&runtime, ExplainInput { sql: "SELECT * FROM mcp_it_items WHERE id = 1".into(), ..Default::default() }).await.expect("explain");
+    let plan = admin_pg::explain(
+        &runtime,
+        ExplainInput {
+            sql: "SELECT * FROM mcp_it_items WHERE id = 1".into(),
+            ..Default::default()
+        },
+    )
+    .await
+    .expect("explain");
     assert!(plan["plan"][0]["Plan"].is_object(), "{plan}");
-    let analyzed = admin_pg::explain(&runtime, ExplainInput { sql: "SELECT * FROM mcp_it_items".into(), analyze: Some(true), ..Default::default() }).await.expect("analyze");
+    let analyzed = admin_pg::explain(
+        &runtime,
+        ExplainInput {
+            sql: "SELECT * FROM mcp_it_items".into(),
+            analyze: Some(true),
+            ..Default::default()
+        },
+    )
+    .await
+    .expect("analyze");
     assert!(analyzed["plan"][0]["Execution Time"].is_number(), "{analyzed}");
-    assert!(admin_pg::explain(&runtime, ExplainInput { sql: "DELETE FROM mcp_it_items".into(), analyze: Some(true), ..Default::default() }).await.is_err());
+    assert!(
+        admin_pg::explain(
+            &runtime,
+            ExplainInput {
+                sql: "DELETE FROM mcp_it_items".into(),
+                analyze: Some(true),
+                ..Default::default()
+            }
+        )
+        .await
+        .is_err()
+    );
     assert_eq!(count(&runtime, "mcp_it_items").await, 8);
 
     // The table resource.
@@ -151,7 +225,9 @@ async fn postgres_tools_enforce_their_guards_and_audit_writes() {
 
     // Without its audit table a write cannot persist.
     let unaudited = pg_runtime("public.mcp_it_no_such_audit").expect("runtime");
-    let error = admin_pg::exec(&unaudited, exec_input("DELETE FROM mcp_it_items", true), "t", "h").await.expect_err("audit");
+    let error = admin_pg::exec(&unaudited, exec_input("DELETE FROM mcp_it_items", true), "t", "h")
+        .await
+        .expect_err("audit");
     assert!(error.contains("audit"), "{error}");
     assert_eq!(count(&runtime, "mcp_it_items").await, 8);
 
@@ -171,50 +247,104 @@ async fn redis_tools_read_cap_and_write_behind_confirm() {
     }));
     let key = |suffix: &str| format!("mcp-it:{suffix}");
 
-    assert!(admin_redis::set(&runtime, SetInput { key: key("s"), value: "v".into(), ..Default::default() }).await.is_err());
+    assert!(
+        admin_redis::set(
+            &runtime,
+            SetInput { key: key("s"), value: "v".into(), ..Default::default() }
+        )
+        .await
+        .is_err()
+    );
     let stored = admin_redis::set(
         &runtime,
-        SetInput { key: key("s"), value: "hello".into(), ex_seconds: Some(120), confirm: Some(true), ..Default::default() },
+        SetInput {
+            key: key("s"),
+            value: "hello".into(),
+            ex_seconds: Some(120),
+            confirm: Some(true),
+            ..Default::default()
+        },
     )
     .await
     .expect("set");
     assert_eq!(stored["stored"], true);
     let kept = admin_redis::set(
         &runtime,
-        SetInput { key: key("s"), value: "other".into(), only_if_absent: Some(true), confirm: Some(true), ..Default::default() },
+        SetInput {
+            key: key("s"),
+            value: "other".into(),
+            only_if_absent: Some(true),
+            confirm: Some(true),
+            ..Default::default()
+        },
     )
     .await
     .expect("nx");
     assert_eq!(kept["stored"], false);
 
-    let value = admin_redis::get(&runtime, KeyInput { key: key("s"), limit: None }).await.expect("get");
+    let value =
+        admin_redis::get(&runtime, KeyInput { key: key("s"), limit: None }).await.expect("get");
     assert_eq!(value["type"], "string");
     assert_eq!(value["value"], "hello");
-    let ttl = admin_redis::ttl(&runtime, KeyInput { key: key("s"), limit: None }).await.expect("ttl");
+    let ttl =
+        admin_redis::ttl(&runtime, KeyInput { key: key("s"), limit: None }).await.expect("ttl");
     assert!(ttl["ttl_seconds"].as_i64().expect("ttl") > 0);
-    let missing = admin_redis::get(&runtime, KeyInput { key: key("nope"), limit: None }).await.expect("missing");
+    let missing = admin_redis::get(&runtime, KeyInput { key: key("nope"), limit: None })
+        .await
+        .expect("missing");
     assert_eq!(missing["exists"], false);
 
     // Collections are capped at SHENRON_MCP_REDIS_MAX_KEYS (3 here).
-    let mut raw = redis::Client::open(env("SHENRON_MCP_TEST_REDIS_URL").expect("url")).expect("client")
-        .get_multiplexed_async_connection().await.expect("connection");
+    let mut raw = redis::Client::open(env("SHENRON_MCP_TEST_REDIS_URL").expect("url"))
+        .expect("client")
+        .get_multiplexed_async_connection()
+        .await
+        .expect("connection");
     for n in 0..6 {
-        let _: () = redis::cmd("RPUSH").arg(key("list")).arg(n).query_async(&mut raw).await.expect("rpush");
-        let _: () = redis::cmd("SET").arg(key(&format!("bulk{n}"))).arg(n).query_async(&mut raw).await.expect("set");
+        let _: () =
+            redis::cmd("RPUSH").arg(key("list")).arg(n).query_async(&mut raw).await.expect("rpush");
+        let _: () = redis::cmd("SET")
+            .arg(key(&format!("bulk{n}")))
+            .arg(n)
+            .query_async(&mut raw)
+            .await
+            .expect("set");
     }
-    let list = admin_redis::get(&runtime, KeyInput { key: key("list"), limit: None }).await.expect("list");
+    let list =
+        admin_redis::get(&runtime, KeyInput { key: key("list"), limit: None }).await.expect("list");
     assert_eq!(list["value"].as_array().expect("items").len(), 3);
     assert_eq!(list["size"], 6);
     assert_eq!(list["truncated"], true);
-    let scan = admin_redis::scan(&runtime, ScanInput { pattern: Some("mcp-it:bulk*".into()), ..Default::default() }).await.expect("scan");
+    let scan = admin_redis::scan(
+        &runtime,
+        ScanInput { pattern: Some("mcp-it:bulk*".into()), ..Default::default() },
+    )
+    .await
+    .expect("scan");
     assert!(scan["keys"].as_array().expect("keys").len() >= 3);
-    let info = admin_redis::info(&runtime, InfoInput { section: Some("server".into()) }).await.expect("info");
+    let info = admin_redis::info(&runtime, InfoInput { section: Some("server".into()) })
+        .await
+        .expect("info");
     assert!(info["server"]["redis_version"].is_string(), "{info}");
 
-    assert!(admin_redis::del(&runtime, DelInput { keys: vec![key("s")], confirm: None }).await.is_err());
+    assert!(
+        admin_redis::del(&runtime, DelInput { keys: vec![key("s")], confirm: None }).await.is_err()
+    );
     let removed = admin_redis::del(
         &runtime,
-        DelInput { keys: vec![key("s"), key("list"), key("bulk0"), key("bulk1"), key("bulk2"), key("bulk3"), key("bulk4"), key("bulk5")], confirm: Some(true) },
+        DelInput {
+            keys: vec![
+                key("s"),
+                key("list"),
+                key("bulk0"),
+                key("bulk1"),
+                key("bulk2"),
+                key("bulk3"),
+                key("bulk4"),
+                key("bulk5"),
+            ],
+            confirm: Some(true),
+        },
     )
     .await
     .expect("del");
@@ -266,14 +396,22 @@ async fn listen_task_turns_notify_and_table_triggers_into_events() {
     assert!(hub.connected(), "the LISTEN connection did not come up");
 
     admin.batch_execute("NOTIFY mcp_it_events, '{\"hello\": \"world\"}'").await.expect("notify");
-    assert!(eventually(hub, "mcp_it_events", |payload| payload["hello"] == "world").await, "NOTIFY never arrived");
+    assert!(
+        eventually(hub, "mcp_it_events", |payload| payload["hello"] == "world").await,
+        "NOTIFY never arrived"
+    );
 
     admin.batch_execute("INSERT INTO mcp_it_live (name) VALUES ('x')").await.expect("insert");
     assert!(
-        eventually(hub, TABLE_CHANNEL, |payload| payload["table"] == "public.mcp_it_live" && payload["op"] == "INSERT").await,
+        eventually(hub, TABLE_CHANNEL, |payload| payload["table"] == "public.mcp_it_live"
+            && payload["op"] == "INSERT")
+        .await,
         "the table trigger event never arrived"
     );
     assert_eq!(admin_live::uris_for(TABLE_CHANNEL, r#"{"table":"public.mcp_it_live"}"#).len(), 3);
 
-    admin.batch_execute("DROP TABLE mcp_it_live CASCADE; DROP FUNCTION mcp_it_notify()").await.expect("cleanup");
+    admin
+        .batch_execute("DROP TABLE mcp_it_live CASCADE; DROP FUNCTION mcp_it_notify()")
+        .await
+        .expect("cleanup");
 }

@@ -17,7 +17,8 @@ use crate::{
 };
 
 /// `data/lexicon/terms.json`, embedded at build time.
-pub const EMBEDDED_JSON: &str = include_str!(concat!(env!("SHENRON_DATA_DIR"), "/lexicon/terms.json"));
+pub const EMBEDDED_JSON: &str =
+    include_str!(concat!(env!("SHENRON_DATA_DIR"), "/lexicon/terms.json"));
 
 /// Default and largest number of search hits.
 pub const SEARCH_DEFAULT_LIMIT: usize = 20;

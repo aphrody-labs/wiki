@@ -183,8 +183,7 @@ fn chunks(sql: &str) -> Result<Vec<Chunk>, String> {
 /// # Errors
 /// The text is empty, holds more than one statement, or has an unterminated quote or comment.
 pub fn single_statement(sql: &str) -> Result<Statement, String> {
-    let mut real: Vec<Chunk> =
-        chunks(sql)?.into_iter().filter(|chunk| chunk.tokens).collect();
+    let mut real: Vec<Chunk> = chunks(sql)?.into_iter().filter(|chunk| chunk.tokens).collect();
     match real.len() {
         0 => Err("empty statement".to_owned()),
         1 => {
@@ -402,7 +401,10 @@ mod tests {
 
     #[test]
     fn identifiers_are_quoted_and_validated() {
-        assert_eq!(qualified_ident("bot.media_editions").as_deref(), Ok("\"bot\".\"media_editions\""));
+        assert_eq!(
+            qualified_ident("bot.media_editions").as_deref(),
+            Ok("\"bot\".\"media_editions\"")
+        );
         assert_eq!(qualified_ident("users").as_deref(), Ok("\"users\""));
         for bad in ["", "a.b.c", "a b", "a;drop", "a\"b", ".a", "a."] {
             assert!(qualified_ident(bad).is_err(), "{bad}");
