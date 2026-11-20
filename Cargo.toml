@@ -14,9 +14,10 @@ rust-version = "1.97"
 license = "Apache-2.0"
 authors = ["Shenron contributors"]
 homepage = "https://dragonballfr.com"
-repository = "https://github.com/aphrody-labs/shenron"
+repository = "https://github.com/aphrody-labs/wiki"
 
 [workspace.dependencies]
+# Sibling checkout of aphrody-labs/nie (one checkout per repository under C:\src); used by shenron-engine and shenron-ffi.
 shenron-re = { package = "nie-dbxv2-re", path = "../nie/plugins/exe/nie-dbxv2-re" }
 alphanumeric-sort = "1.5.8"
 deadpool-postgres = "0.14.2"

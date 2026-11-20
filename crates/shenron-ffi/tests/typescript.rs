@@ -24,8 +24,10 @@ const TYPES_TS: &str = "packages/native/src/generated/types.ts";
 const HEADER: &str = "// SPDX-License-Identifier: Apache-2.0\n\
     // Generated from crates/shenron-ffi by `bun packages/native/scripts/generate.ts`; do not edit.\n";
 
+/// The shenron checkout owning the generated TypeScript (`SHENRON_ROOT`, default next to this repository).
 fn repository() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..")
+    std::env::var_os("SHENRON_ROOT")
+        .map_or_else(|| PathBuf::from(env!("SHENRON_DATA_DIR")).join(".."), PathBuf::from)
 }
 
 fn kind_name(kind: FfiKind) -> &'static str {

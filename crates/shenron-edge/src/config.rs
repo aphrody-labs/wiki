@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //! The one TOML file that describes the edge: listeners, certificates, cache zones, upstream
-//! pools and virtual hosts. Nothing is hardcoded in the binary; see `deploy/edge/*.toml`.
+//! pools and virtual hosts. Nothing is hardcoded in the binary; see `tests/fixtures/*.example.toml`.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -492,10 +492,10 @@ mod tests {
 
     #[test]
     fn shipped_examples_parse_and_are_complete() {
-        let fr2 = Config::parse(include_str!("../../../deploy/edge/fr2.example.toml")).unwrap();
+        let fr2 = Config::parse(include_str!("../tests/fixtures/fr2.example.toml")).unwrap();
         assert_eq!(fr2.vhosts[1].routes.len(), 6, "the six nginx locations");
         assert_eq!(fr2.caches.len(), 3);
-        let prd = Config::parse(include_str!("../../../deploy/edge/prd.example.toml")).unwrap();
+        let prd = Config::parse(include_str!("../tests/fixtures/prd.example.toml")).unwrap();
         assert_eq!(prd.vhosts.len(), 3);
     }
 }

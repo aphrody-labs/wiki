@@ -110,7 +110,7 @@ mod tests {
 
     #[test]
     fn test_deserialize_canon_story_manifest() {
-        let raw = include_str!("../../../data/games/canon-story-manifest.json");
+        let raw = include_str!(concat!(env!("SHENRON_DATA_DIR"), "/games/canon-story-manifest.json"));
         let manifest = CanonStoryManifest::from_json_str(raw)
             .expect("Failed to parse canon-story-manifest.json");
         assert_eq!(manifest.version, "1.0.0");

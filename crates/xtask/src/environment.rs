@@ -513,7 +513,10 @@ mod tests {
     use super::*;
 
     fn repository_root() -> std::path::PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
+        std::env::var_os("SHENRON_ROOT").map_or_else(
+            || Path::new(env!("SHENRON_DATA_DIR")).join(".."),
+            std::path::PathBuf::from,
+        )
     }
 
     #[test]

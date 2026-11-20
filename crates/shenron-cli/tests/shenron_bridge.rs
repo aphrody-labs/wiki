@@ -86,8 +86,12 @@ fn shenron_persona_prompt_output() {
     let state = tempfile::tempdir().expect("temporary Shenron home");
     let workspace = state.path().join("workspace-dbfr");
     std::fs::create_dir_all(&workspace).expect("workspace-dbfr");
-    let fixture =
-        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../templates/agent-home");
+    // `SHENRON_ROOT` overrides the shenron checkout next to this repository.
+    let root = std::env::var_os("SHENRON_ROOT").map_or_else(
+        || std::path::Path::new(env!("SHENRON_DATA_DIR")).join(".."),
+        std::path::PathBuf::from,
+    );
+    let fixture = root.join("templates/agent-home");
     copy_tree(&fixture, &workspace);
     shenron()
         .env("SHENRON_HOME", state.path())

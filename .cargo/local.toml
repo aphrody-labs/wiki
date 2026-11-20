@@ -1,3 +1,0 @@
-# Untracked machine-local Cargo target unification (never touches OS workspaces ay/aphrody).
-[build]
-target-dir = "C:/data/cache/cargo-target"

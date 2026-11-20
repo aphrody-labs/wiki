@@ -526,7 +526,6 @@ fn definitions() -> Vec<Workflow> {
         codeql(),
         desktop(),
         edge(),
-        migrate(),
         npm_publish(),
         release(),
         rust(),
@@ -1101,89 +1100,6 @@ fn edge() -> Workflow {
                     Step::run("bun x wrangler@4.162.0 deploy -c wrangler.jsonc --keep-vars")
                         .named("Deploy shenron-cdn")
                         .directory("deploy/cloudflare"),
-                ),
-        )
-}
-
-fn migrate() -> Workflow {
-    Workflow::new("migrate", "migrate")
-        .header(
-            r###"
-            SPDX-License-Identifier: Apache-2.0
-            TypeScript to Rust migration gate (docs/decisions/0004-migration-typescript-rust.md): on every push,
-            since a TypeScript-only change can break the ratchet of migration/rust.toml.
-              - every TypeScript file belongs to a unit, no unit grows past its ts_lines
-              - dual units keep their golden cases, rust units have no TypeScript left
-              - the golden HTTP cases are what the TypeScript host answers, and the Rust router answers the same
-            "###,
-        )
-        .section(
-            group(
-                "on",
-                vec![
-                    group("push", vec![field("branches", "[main]")]),
-                    bare("pull_request"),
-                    bare("workflow_dispatch"),
-                ],
-            )
-            .blank(),
-        )
-        .section(contents_read().blank())
-        .section(
-            group(
-                "concurrency",
-                vec![
-                    field("group", "migrate-${{ github.ref }}"),
-                    field("cancel-in-progress", "true"),
-                ],
-            )
-            .blank(),
-        )
-        .section(
-            group(
-                "env",
-                vec![
-                    field("CARGO_TERM_COLOR", "always"),
-                    quoted_field("CARGO_INCREMENTAL", "0"),
-                    quoted_field("CARGO_PROFILE_DEV_DEBUG", "0"),
-                    quoted_field("CARGO_PROFILE_TEST_DEBUG", "0"),
-                ],
-            )
-            .blank(),
-        )
-        .job(
-            Job::new("ledger")
-                .entry(field("name", "Ledger, ratchet, HTTP parity"))
-                .entry(field("if", NOT_FORK_PULL_REQUEST))
-                .entry(field("runs-on", FACTORY))
-                .entry(field("timeout-minutes", "30"))
-                .entry(group(
-                    "env",
-                    vec![
-                        field("RUSTC_WRAPPER", "sccache"),
-                        field(
-                            "CARGO_TARGET_DIR",
-                            "${{ vars.SHENRON_CARGO_TARGET_DIR || format('{0}/target', github.workspace) }}",
-                        ),
-                        quoted_field("GIT_TERMINAL_PROMPT", "0"),
-                    ],
-                ))
-                .step(checkout_clean())
-                .step(factory_tools())
-                .step(toolchain())
-                .step(setup_bun())
-                .step(Step::run("bun ci").named("Install"))
-                .step(
-                    Step::run("bun packages/api/scripts/api-fixtures.ts --check")
-                        .named("Golden HTTP cases match the TypeScript host"),
-                )
-                .step(
-                    Step::run("cargo run -q --locked -p shenron-migrate -- check")
-                        .named("Migration ledger (shenron-migrate check)"),
-                )
-                .step(
-                    Step::run("cargo test -q --locked -p shenron-api -p shenron-migrate")
-                        .named("Rust router answers the golden cases"),
                 ),
         )
 }
@@ -2046,7 +1962,10 @@ mod tests {
 
     #[test]
     fn checked_in_workflows_match_their_definitions() {
-        let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..");
+        let root = std::env::var_os("SHENRON_ROOT").map_or_else(
+            || Path::new(env!("SHENRON_DATA_DIR")).join(".."),
+            std::path::PathBuf::from,
+        );
         let directory = root.join(".github").join("workflows");
         let stale = stale_files(&directory, &render_all()).expect("workflow directory is readable");
         assert!(stale.is_empty(), "{stale:?}");

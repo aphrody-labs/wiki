@@ -1,5 +1,4 @@
 set dotenv-load
-set windows-shell := ["pwsh", "-NoLogo", "-NoProfile", "-Command"]
 
 # List wiki recipes
 default:

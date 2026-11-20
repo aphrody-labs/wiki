@@ -1,3 +1,45 @@
 # wiki
 
-Full-Rust workspace extracted from `shenron` (44 crates: `shenron-*`, `koharu-*`, `dragon-pixel`, `xtask`).
+Rust-only workspace extracted from `shenron`: the `shenron` CLI, MCP server, API, C ABI, studio and
+the Koharu engine crates. No Bun package lives here; the Bun side (site, bot, packages) and the
+canonical `data/` belong to [aphrody-labs/shenron](https://github.com/aphrody-labs/shenron).
+
+## Layout
+
+`Cargo.toml` declares `members = ["crates/*"]` and excludes three standalone crates, so the 42
+directories of `crates/` give 39 workspace members:
+
+| Family              | Crates                                                                 |
+| ------------------- | ---------------------------------------------------------------------- |
+| `shenron-*` (25)    | api, cli, mcp, ffi, engine, lexicon, rag, memory, studio, edge, ...    |
+| `koharu-*` (15)     | agent, app, canvas, desktop, library, ml, pipeline, psd, renderer, ... |
+| `dragon-pixel`      | WebGPU game view and multiplayer room service                          |
+| `xtask`             | repository tasks (`cargo xtask map | scripts | workflows | env-check`)  |
+
+Excluded (own `Cargo.lock`, build alone): `shenron-video`, `shenron-tv`, `shenron-deployd`.
+
+`replica/` holds product recon, plans and schemas for dragonballfr.com (no crate reads it).
+
+## Data contract with shenron
+
+Crates read canonical data from the sibling shenron checkout through one variable,
+`SHENRON_DATA_DIR`, set in `.cargo/config.toml` to `../shenron/data` (resolved from this root).
+Embedded files use `include_str!(concat!(env!("SHENRON_DATA_DIR"), "/..."))`. Tests and tools that
+need other shenron files (`packages/api/openapi/public.json`, `templates/agent-home`,
+`scripts/parity/states.json`, `packages/native/src/generated`, `deploy/environment.json`) take
+`SHENRON_ROOT`, defaulting to the parent of `SHENRON_DATA_DIR`. `shenron-engine` and `shenron-ffi`
+also path-depend on `../nie/plugins/exe/nie-dbxv2-re`.
+
+Expected tree: `src/wiki`, `src/shenron`, `src/nie` side by side. An exported `SHENRON_DATA_DIR`
+wins over the config.
+
+## Gates
+
+```sh
+cargo metadata --no-deps --offline   # manifests resolve
+cargo ck                             # check --workspace --all-targets
+cargo lint                           # clippy, warnings denied
+cargo t                              # nextest
+```
+
+Heavy builds run on the build host, not on the workstation. License: Apache-2.0.

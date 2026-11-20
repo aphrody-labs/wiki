@@ -298,7 +298,7 @@ fn compare_flags_per_tag_recall5_regression() {
 fn gold_file_parses_when_present() {
     // `SHENRON_ROOT` overrides the sibling checkout next to this repository.
     let shenron = std::env::var_os("SHENRON_ROOT").map_or_else(
-        || std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../shenron"),
+        || std::path::Path::new(env!("SHENRON_DATA_DIR")).join(".."),
         std::path::PathBuf::from,
     );
     let path = shenron.join("apps/bot/tests/rag-gold.jsonl");

@@ -10,9 +10,9 @@ shenron-edge --check --config /etc/shenron-edge/edge.toml  # validate, bind noth
 kill -HUP $(pidof shenron-edge)                            # reload; an invalid file keeps the running config
 ```
 
-Examples that match the live nginx configuration: `deploy/edge/fr2.example.toml` (the six
-locations of `shenron-lb.conf`), `deploy/edge/prd.example.toml` (the admin, tv and koharu vhosts),
-unit `deploy/edge/shenron-edge.service`.
+Examples that match the live nginx configuration: `tests/fixtures/fr2.example.toml` (the six
+locations of `shenron-lb.conf`), `tests/fixtures/prd.example.toml` (the admin, tv and koharu vhosts),
+unit `deploy/edge/shenron-edge.service` (in the shenron repository).
 
 ## Why Pingora
 

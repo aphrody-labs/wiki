@@ -13043,17 +13043,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "shenron-migrate"
-version = "1.4.5"
-dependencies = [
- "serde",
- "serde_json",
- "shenron-api",
- "toml 1.2.1+spec-1.1.0",
- "walkdir",
-]
-
-[[package]]
 name = "shenron-ocr-core"
 version = "1.4.5"
 dependencies = [

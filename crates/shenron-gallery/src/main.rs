@@ -158,11 +158,14 @@ fn render(contract: &Contract, _: &Path, _: &Path, _: Theme, ids: &[StateId]) ->
     ))
 }
 
-/// The repository root: `--font-dir`, or the nearest ancestor of the working directory holding
-/// the contract.
+/// The shenron root holding the contract: `--font-dir`, then `SHENRON_ROOT`, then the nearest
+/// ancestor of the working directory holding it.
 fn repo_root(explicit: Option<PathBuf>) -> Result<PathBuf> {
     if let Some(root) = explicit {
         return Ok(root);
+    }
+    if let Some(root) = std::env::var_os("SHENRON_ROOT") {
+        return Ok(PathBuf::from(root));
     }
     let cwd = std::env::current_dir()?;
     cwd.ancestors()

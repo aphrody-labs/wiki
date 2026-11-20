@@ -9,7 +9,7 @@ license.workspace = true
 authors.workspace = true
 homepage.workspace = true
 repository.workspace = true
-# Embeds data/lexicon/terms.json from the repository root (outside the crate directory).
+# Embeds lexicon/terms.json from the shenron data directory (SHENRON_DATA_DIR, .cargo/config.toml).
 publish = false
 
 [lints]

@@ -2,11 +2,10 @@
 //! The Shenron HTTP contract served by Rust (Axum), one route group at a time.
 //!
 //! The contract is the zod catalogue of `packages/api/src/contract` exported as
-//! `packages/api/openapi/public.json`. Each group ported here answers byte-for-byte the same JSON as
+//! `packages/api/openapi/public.json` (shenron repository). Each group ported here answers byte-for-byte the same JSON as
 //! the TypeScript host (`createShenronApi`): both replay the golden HTTP cases of
-//! `data/api/fixtures/*.json` (`tests/parity.rs`, `packages/api/test/rust-parity.test.ts`), and every
+//! `data/api/fixtures/*.json` of shenron (`SHENRON_DATA_DIR`, `tests/parity.rs`, `packages/api/test/rust-parity.test.ts`), and every
 //! operation listed in [`OPERATIONS`] must exist in the OpenAPI document (`tests/contract.rs`).
-//! Migration ledger and ratchet: `migration/rust.toml`, `cargo run -p shenron-migrate -- check`.
 
 mod http;
 mod lexicon;

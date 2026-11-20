@@ -257,8 +257,10 @@ impl FromStr for Interaction {
 mod tests {
     use super::*;
 
+    /// The shenron checkout holding the contract (`SHENRON_ROOT`, default next to this repository).
     fn repo_root() -> PathBuf {
-        Path::new(env!("CARGO_MANIFEST_DIR")).join("../..")
+        std::env::var_os("SHENRON_ROOT")
+            .map_or_else(|| Path::new(env!("SHENRON_DATA_DIR")).join(".."), PathBuf::from)
     }
 
     #[test]

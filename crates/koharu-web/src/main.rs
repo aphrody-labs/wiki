@@ -46,7 +46,7 @@ use tokio::sync::{OnceCell, Semaphore, watch};
 use uuid::Uuid;
 
 const INDEX: &str = include_str!("index.html");
-const OPENAPI: &str = include_str!("../../../docs/api/koharu-web.openapi.json");
+const OPENAPI: &str = include_str!("../docs/koharu-web.openapi.json");
 /// Finished jobs kept in memory (result PNG included).
 const KEEP_JOBS: usize = 32;
 

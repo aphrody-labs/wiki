@@ -351,7 +351,7 @@ mod tests {
     #[test]
     fn the_legacy_lexicon_file_loads() {
         let path =
-            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../data/lexique-db-canonique.json");
+            Path::new(env!("SHENRON_DATA_DIR")).join("lexique-db-canonique.json");
         if !path.is_file() {
             return;
         }

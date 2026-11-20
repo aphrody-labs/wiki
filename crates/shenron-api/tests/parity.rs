@@ -41,7 +41,7 @@ fn get() -> String {
 }
 
 fn fixtures_dir() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../data/api/fixtures")
+    PathBuf::from(env!("SHENRON_DATA_DIR")).join("api/fixtures")
 }
 
 fn fixtures() -> Vec<(String, Fixture)> {

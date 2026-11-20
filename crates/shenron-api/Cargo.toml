@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 [package]
 name = "shenron-api"
-description = "The Shenron HTTP contract (packages/api/openapi/public.json) served by Axum: the Rust side of the TypeScript to Rust migration, route group by route group."
+description = "The Shenron HTTP contract (packages/api/openapi/public.json) served by Axum, route group by route group."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
