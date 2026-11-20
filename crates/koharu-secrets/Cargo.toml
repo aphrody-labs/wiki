@@ -22,7 +22,6 @@ workspace = true
 
 [dependencies]
 anyhow = { workspace = true }
-keyring = { workspace = true }
 keyring-core = { workspace = true }
 secrecy = { workspace = true }
 serde = { workspace = true }
