@@ -8947,6 +8947,22 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "650eef8c711430f1a879fdd01d4745a7deea475becfb90269c06775983bbf086"
 
 [[package]]
+name = "nie-dbxv2-re"
+version = "2.0.0"
+dependencies = [
+ "aes 0.9.4",
+ "hex",
+ "md-5 0.11.0",
+ "memmap2",
+ "serde",
+ "serde-wasm-bindgen",
+ "serde_json",
+ "sha2 0.11.1",
+ "thiserror 2.0.21",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "nix"
 version = "0.31.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -12858,6 +12874,7 @@ dependencies = [
  "js-sys",
  "memmap2",
  "naga 30.0.2",
+ "nie-dbxv2-re",
  "parking_lot",
  "pollster 1.0.1",
  "rayon",
@@ -12866,7 +12883,6 @@ dependencies = [
  "serde_json",
  "sha2 0.11.1",
  "shenron-panels",
- "shenron-re",
  "thiserror 2.0.21",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -12879,6 +12895,7 @@ name = "shenron-ffi"
 version = "1.4.5"
 dependencies = [
  "axum",
+ "nie-dbxv2-re",
  "reqwest",
  "rustix 1.1.6",
  "serde",
@@ -12889,7 +12906,6 @@ dependencies = [
  "shenron-memory",
  "shenron-rag",
  "shenron-rag-core",
- "shenron-re",
  "specta",
  "specta-serde",
  "specta-typescript",
@@ -13091,23 +13107,6 @@ dependencies = [
  "serde_json",
  "syn 3.0.10",
  "thiserror 2.0.21",
-]
-
-[[package]]
-name = "shenron-re"
-version = "1.4.5"
-dependencies = [
- "aes 0.9.4",
- "hex",
- "md-5 0.11.0",
- "memmap2",
- "serde",
- "serde-wasm-bindgen",
- "serde_json",
- "sha2 0.11.1",
- "tempfile",
- "thiserror 2.0.21",
- "wasm-bindgen",
 ]
 
 [[package]]
