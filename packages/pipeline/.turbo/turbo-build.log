@@ -1,0 +1,5 @@
+$ bun build src/cli.ts --target=bun --external=sharp --external=zod --outfile=dist/pipeline
+Bundled 94 modules in 68ms
+
+  pipeline  1.0 MB  (entry point)
+
