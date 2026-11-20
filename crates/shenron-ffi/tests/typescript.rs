@@ -18,16 +18,16 @@ use shenron_ffi::{
 use specta::Types;
 use specta_typescript::Typescript;
 
-const SYMBOLS_TS: &str = "packages/native/src/generated/symbols.ts";
-const TYPES_TS: &str = "packages/native/src/generated/types.ts";
+const SYMBOLS_TS: &str = "generated/symbols.ts";
+const TYPES_TS: &str = "generated/types.ts";
 
 const HEADER: &str = "// SPDX-License-Identifier: Apache-2.0\n\
     // Generated from crates/shenron-ffi by `bun packages/native/scripts/generate.ts`; do not edit.\n";
 
-/// The shenron checkout owning the generated TypeScript (`SHENRON_ROOT`, default next to this repository).
+/// The crate directory: the generated TypeScript is committed here and copied into shenron by
+/// `bun packages/native/scripts/generate.ts` (`SHENRON_NATIVE_GENERATED_DIR`).
 fn repository() -> PathBuf {
-    std::env::var_os("SHENRON_ROOT")
-        .map_or_else(|| PathBuf::from(env!("SHENRON_DATA_DIR")).join(".."), PathBuf::from)
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
 }
 
 fn kind_name(kind: FfiKind) -> &'static str {
@@ -154,6 +154,6 @@ fn generated_typescript_is_current() {
     }
     assert!(
         stale.is_empty(),
-        "stale generated TypeScript {stale:?}: run `bun packages/native/scripts/generate.ts`"
+        "stale generated TypeScript {stale:?}: run `UPDATE=1 cargo test -p shenron-ffi --test typescript`, then `bun packages/native/scripts/generate.ts` in shenron"
     );
 }

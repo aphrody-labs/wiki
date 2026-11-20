@@ -9,9 +9,6 @@ use std::process::{Command, ExitCode};
 use anyhow::{Context, Result, bail};
 use clap::{Parser, Subcommand};
 
-mod environment;
-mod workflows;
-
 #[derive(Parser)]
 #[command(name = "xtask", about = "Shenron repository tasks")]
 struct Cli {
@@ -32,18 +29,6 @@ enum Task {
         #[arg(long)]
         orphans: bool,
     },
-    /// Write .github/workflows/*.yml from crates/xtask/src/workflows.rs; with --check, fail when a
-    /// file differs from its definition or has none.
-    Workflows {
-        #[arg(long)]
-        check: bool,
-    },
-    /// Fail when a consumer of a pin (rust-toolchain.toml, package.json, Dockerfile.build,
-    /// deploy/docker) disagrees with deploy/environment.json.
-    EnvCheck,
-    /// Fail when this host's rustc or Bun (version, channel, revision) differs from
-    /// deploy/environment.json.
-    EnvVerifyHost,
 }
 
 fn main() -> ExitCode {
@@ -61,9 +46,6 @@ fn run(cli: Cli) -> Result<ExitCode> {
     match cli.task {
         Task::Map { check } => map(&root, check),
         Task::Scripts { orphans } => scripts(&root, orphans),
-        Task::Workflows { check } => workflows::run(&root, check),
-        Task::EnvCheck => environment::check(&root),
-        Task::EnvVerifyHost => environment::verify_host(&root),
     }
 }
 

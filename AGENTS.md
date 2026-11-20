@@ -19,9 +19,10 @@ is full Bun and owns `data/`, `packages/`, `apps/`; nothing Bun lives here.
 
 - Read shenron data only through `SHENRON_DATA_DIR`; never copy `data/` here and never hard-code a
   `../../data` path.
-- Other shenron files (openapi, templates, generated TypeScript): `SHENRON_ROOT`, default the parent
-  of `SHENRON_DATA_DIR`.
-- Generated TypeScript of `shenron-ffi` is written into shenron (`UPDATE=1`, `packages/native`).
+- Other shenron files (openapi, templates, parity states, rag gold): `SHENRON_ROOT`, default the
+  parent of `SHENRON_DATA_DIR`.
+- Generated TypeScript of `shenron-ffi` lives in `crates/shenron-ffi/generated` (`UPDATE=1 cargo test
+  -p shenron-ffi --test typescript` rewrites it); shenron copies it through `SHENRON_WIKI_DIR`.
 
 ## Git
 
