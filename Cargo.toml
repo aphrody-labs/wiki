@@ -151,7 +151,6 @@ schemars = { version = "1.2.2", features = ["derive", "chrono04", "indexmap2", "
 serde = { version = "1.0.229", features = ["derive", "std"], default-features = false }
 serde_json = "1.0.151"
 sha2 = "0.11.0"
-shenron-api = { path = "crates/shenron-api", version = "1.4.5" }
 shenron-cli = { path = "crates/shenron-cli", version = "1.4.5" }
 shenron-home = { path = "crates/shenron-home", version = "1.4.5" }
 shenron-jev = { path = "crates/shenron-jev", version = "1.4.5" }
