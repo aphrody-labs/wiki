@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 [package]
 name = "xtask"
-description = "Repository tasks of Shenron in Rust, run as `cargo xtask <task>` and through `just`: repository map and script inventory."
+description = "Repository tasks of the wiki workspace, run as `cargo xtask <task>`: the repository map."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

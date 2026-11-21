@@ -2,7 +2,7 @@
 //! `cargo xtask`: repository tasks that read only the commit (`git ls-tree`, `git show`), so their
 //! output depends on the commit and not on build outputs, caches or uncommitted edits.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use std::process::{Command, ExitCode};
 
@@ -23,12 +23,6 @@ enum Task {
         #[arg(long)]
         check: bool,
     },
-    /// Classify every script under scripts/ by what references it; with --orphans, list only the
-    /// scripts nothing references and exit 1 when there are any.
-    Scripts {
-        #[arg(long)]
-        orphans: bool,
-    },
 }
 
 fn main() -> ExitCode {
@@ -45,7 +39,6 @@ fn run(cli: Cli) -> Result<ExitCode> {
     let root = repository_root()?;
     match cli.task {
         Task::Map { check } => map(&root, check),
-        Task::Scripts { orphans } => scripts(&root, orphans),
     }
 }
 
@@ -85,12 +78,10 @@ fn head_blobs(root: &Path) -> Result<Vec<Blob>> {
     Ok(blobs)
 }
 
-const SPLIT: [&str; 3] = ["apps", "crates", "packages"];
-
 fn area_of(path: &str) -> String {
     let parts: Vec<&str> = path.split('/').collect();
     match parts.as_slice() {
-        [top, name, _, ..] if SPLIT.contains(top) => format!("{top}/{name}"),
+        ["crates", name, _, ..] => format!("crates/{name}"),
         [top, _, ..] => (*top).to_string(),
         _ => "(root)".to_string(),
     }
@@ -100,9 +91,7 @@ fn tier(area: &str) -> &'static str {
     let top = area.split('/').next().unwrap_or(area);
     match top {
         "(root)" => "config",
-        "data" | "themes" | "templates" => "content",
-        "docs" | "research_notes" | "reports" | "replica" => "docs",
-        "deploy" | "scripts" | ".github" | "migration" => "ops",
+        "replica" => "docs",
         _ if top.starts_with('.') => "config",
         _ => "first-party",
     }
@@ -114,9 +103,6 @@ fn gate(area: &str) -> String {
         (Some("crates"), Some(name)) => {
             format!("cargo clippy -p {name} --all-targets -- -D warnings (fr1)")
         },
-        (Some("apps" | "packages"), Some(_)) => format!("bun test {area}"),
-        (Some("scripts"), None) => "bun test scripts".to_string(),
-        (Some("docs"), None) => "link check".to_string(),
         _ => "just check".to_string(),
     }
 }
@@ -136,7 +122,7 @@ fn map(root: &Path, check: bool) -> Result<ExitCode> {
     if check {
         let current = std::fs::read_to_string(&target).unwrap_or_default();
         if current != output {
-            eprintln!("MAP.tsv is stale: run `just map`");
+            eprintln!("MAP.tsv is stale: run `cargo xtask map`");
             return Ok(ExitCode::FAILURE);
         }
         println!("MAP.tsv up to date ({} areas)", areas.len());
@@ -145,96 +131,4 @@ fn map(root: &Path, check: bool) -> Result<ExitCode> {
         println!("MAP.tsv: {} areas, {} bytes", areas.len(), output.len());
     }
     Ok(ExitCode::SUCCESS)
-}
-
-const SCRIPT_EXTENSIONS: [&str; 5] = ["ts", "sh", "mjs", "js", "py"];
-const CORPUS_EXTENSIONS: [&str; 15] = [
-    "ts", "tsx", "mjs", "js", "json", "toml", "yml", "yaml", "md", "sh", "service", "timer", "in",
-    "hcl", "rs",
-];
-
-fn extension(path: &str) -> Option<&str> {
-    let name = path.rsplit('/').next()?;
-    name.rsplit_once('.').map(|(_, extension)| extension)
-}
-
-/// Where a reference comes from, from strongest to weakest.
-fn reference_kind(referrer: &str) -> &'static str {
-    if referrer == "justfile" {
-        "just"
-    } else if referrer.ends_with("package.json") {
-        "package"
-    } else if referrer.starts_with(".github/") {
-        "ci"
-    } else if referrer.starts_with("deploy/") {
-        "deploy"
-    } else if referrer.ends_with(".test.ts") {
-        "test"
-    } else if referrer.ends_with(".md") {
-        "doc"
-    } else {
-        "code"
-    }
-}
-
-fn scripts(root: &Path, orphans_only: bool) -> Result<ExitCode> {
-    let blobs = head_blobs(root)?;
-    let scripts: Vec<&str> = blobs
-        .iter()
-        .map(|blob| blob.path.as_str())
-        .filter(|path| path.starts_with("scripts/") && !path.ends_with(".test.ts"))
-        .filter(|path| {
-            extension(path).is_some_and(|extension| SCRIPT_EXTENSIONS.contains(&extension))
-        })
-        .collect();
-    let mut corpus = Vec::new();
-    for blob in &blobs {
-        let path = blob.path.as_str();
-        let candidate = path == "justfile"
-            || path.contains("Dockerfile")
-            || extension(path).is_some_and(|extension| CORPUS_EXTENSIONS.contains(&extension));
-        if !candidate {
-            continue;
-        }
-        let text = git(root, &["show", &format!("HEAD:{path}")])?;
-        corpus.push((path, String::from_utf8_lossy(&text).into_owned()));
-    }
-
-    let mut counts: BTreeMap<&str, usize> = BTreeMap::new();
-    let mut lines = vec!["script\tclass\treferenced_by".to_string()];
-    for script in &scripts {
-        let stem = script.rsplit('/').next().unwrap_or(script);
-        let stem = stem.rsplit_once('.').map_or(stem, |(stem, _)| stem);
-        let relative = script.trim_start_matches("scripts/");
-        let needles =
-            [script.to_string(), relative.to_string(), format!("/{stem}."), format!("./{stem}\"")];
-        let kinds: BTreeSet<&str> = corpus
-            .iter()
-            .filter(|(path, _)| path != script)
-            .filter(|(_, text)| needles.iter().any(|needle| text.contains(needle.as_str())))
-            .map(|(path, _)| reference_kind(path))
-            .collect();
-        let class = if ["just", "package", "ci", "deploy"].iter().any(|kind| kinds.contains(kind)) {
-            "entry"
-        } else if kinds.contains("code") {
-            "library"
-        } else if kinds.contains("test") {
-            "tested-only"
-        } else if kinds.contains("doc") {
-            "doc-only"
-        } else {
-            "orphan"
-        };
-        *counts.entry(class).or_default() += 1;
-        if !orphans_only || class == "orphan" {
-            let kinds: Vec<&str> = kinds.into_iter().collect();
-            lines.push(format!("{script}\t{class}\t{}", kinds.join(",")));
-        }
-    }
-    for line in &lines {
-        println!("{line}");
-    }
-    eprintln!("{} scripts: {counts:?}", scripts.len());
-    let orphans = counts.get("orphan").copied().unwrap_or(0);
-    Ok(if orphans_only && orphans > 0 { ExitCode::FAILURE } else { ExitCode::SUCCESS })
 }
