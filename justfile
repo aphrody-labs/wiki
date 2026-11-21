@@ -4,13 +4,13 @@ set dotenv-load
 default:
     @just --list
 
-# Fast workspace check
+# Type-check every crate and target
 check:
-    cargo check --workspace
+    cargo ck
 
-# Clippy with warnings denied (Zed / Fw standard)
+# Clippy with warnings denied
 lint:
-    cargo clippy --workspace --all-targets -- -D warnings
+    cargo lint
 
 # Format Rust sources
 fmt:
@@ -20,10 +20,10 @@ fmt:
 fmt-check:
     cargo fmt --all -- --check
 
-# Run full workspace test suite
+# Run the workspace tests
 test:
-    cargo test --workspace
+    cargo t
 
-# Release build (cosmic-epoch pattern)
+# Release build
 build-release:
     cargo build --release --workspace

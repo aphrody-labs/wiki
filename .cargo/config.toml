@@ -11,7 +11,7 @@ include = [{ path = "local.toml", optional = true }]
 ck = "check --workspace --all-targets"
 # The CI lint gate: clippy over the workspace, warnings denied.
 lint = "clippy --workspace --all-targets -- -D warnings"
-# Tests through cargo-nextest (.config/nextest.toml); `cargo t --profile ci` mirrors the CI.
+# Tests through cargo-nextest.
 t = "nextest run --workspace"
 # Shenron adapters over the in-process Koharu engine (`koharu` feature, off by default).
 koharu = "clippy -p shenron-manga -p shenron-cli -p shenron-mcp --all-targets --features shenron-manga/koharu,shenron-cli/koharu,shenron-mcp/koharu -- -D warnings"
@@ -20,12 +20,12 @@ koharu-test = "nextest run -p shenron-manga -p shenron-cli -p shenron-mcp --feat
 wasm = "check -p koharu-canvas --lib --target wasm32-unknown-unknown"
 # Rustdoc of the workspace crates, without their dependencies.
 docs = "doc --workspace --no-deps"
-# Repository tasks in Rust (crates/xtask): `cargo xtask map`, `cargo xtask scripts`.
+# Repository tasks in Rust (crates/xtask): `cargo xtask map`.
 xtask = "run --quiet -p xtask --"
 
 [env]
-# The one knob to the canonical data owned by the sibling shenron checkout (C:\src\shenron\data,
-# ../shenron/data from this workspace root). Crates embed it with
+# The one knob to the canonical data owned by the sibling shenron checkout (../shenron/data from this
+# workspace root). Crates embed it with
 # `include_str!(concat!(env!("SHENRON_DATA_DIR"), "/..."))`; tests and tools derive the shenron
 # root from its parent (a `SHENRON_ROOT` variable overrides that root at run time). An exported
 # variable of the same name wins.

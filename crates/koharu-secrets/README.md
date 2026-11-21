@@ -1,14 +1,12 @@
 # koharu-secrets
 
-Gestion des secrets de Koharu.
+Secret handling for Koharu.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p koharu-secrets
 cargo nextest run -p koharu-secrets
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

@@ -1,14 +1,12 @@
 # shenron-ffi
 
-ABI C de Shenron (`shenron_*`): commande shenron, découpage et recherche RAG, persona, corpus local, jobs annulables.
+Shenron C ABI (`shenron_*`): the `shenron` command, RAG chunking and search, persona, local corpus and cancellable jobs.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p shenron-ffi
 cargo nextest run -p shenron-ffi
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

@@ -1,19 +1,11 @@
 # shenron-rag-core
 
-<!-- catalog:begin unit -->
-> Pure, wasm32-safe core of the shenron RAG layer: source-aware chunkers (Rust/JS-TS/Markdown/structural/prose), reciprocal-rank-fusion + MMR + vector helpers, and a bit-for-bit port of shenron's retrieval eval harness.
+Pure, wasm32-safe core of the Shenron RAG layer: source-aware chunkers (Rust, Markdown, structural, prose), reciprocal-rank fusion, MMR and vector helpers, and a port of shenron's retrieval eval harness checked against golden files (`tests/fixtures/parity/`).
 
-| Type | Path |
-| :-- | :-- |
-| Rust crate | `src/rag-core` |
-
-**Commands**
+## Development
 
 ```sh
 cargo test -p shenron-rag-core
 ```
 
-Rust builds run on the build host or in CI, not on a workstation.
-
-Part of the Shenron Rust workspace: [aphrody-labs/wiki](../../README.md).
-<!-- catalog:end -->
+Builds run on the build host or in CI; workspace rules are in the root [README](../../README.md).

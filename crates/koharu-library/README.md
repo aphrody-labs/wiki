@@ -1,14 +1,12 @@
 # koharu-library
 
-Moteur Koharu: état de l'éditeur, projets, traitement, rendu, export, outils d'agent, transport `koharu-sdk`.
+Koharu engine: editor state, projects, processing, rendering, export, agent tools and the `koharu-sdk` transport.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p koharu-library
 cargo nextest run -p koharu-library
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

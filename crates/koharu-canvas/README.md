@@ -1,14 +1,12 @@
 # koharu-canvas
 
-Canvas WebGPU navigateur pour les trames préparées de Koharu (code fonctionnel wasm seulement).
+Browser WebGPU canvas for Koharu's prepared frames (functional on wasm only).
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p koharu-canvas
 cargo nextest run -p koharu-canvas
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

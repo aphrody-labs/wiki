@@ -1,14 +1,12 @@
 # koharu-storage
 
-Stockage de snapshots et de blobs sur le système de fichiers.
+Snapshot and blob storage on the file system.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p koharu-storage
 cargo nextest run -p koharu-storage
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

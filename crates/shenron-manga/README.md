@@ -1,14 +1,12 @@
 # shenron-manga
 
-Adaptateur Shenron au-dessus de la bibliothèque Koharu: catalogue CDN, mapping des résultats de page, projection OCR.
+Shenron adapter over the Koharu library: CDN catalog, page result mapping and OCR projection.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p shenron-manga
 cargo nextest run -p shenron-manga
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

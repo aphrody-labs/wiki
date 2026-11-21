@@ -1,14 +1,12 @@
 # koharu-desktop
 
-Préparation native des pages, partagée entre la présentation navigateur et l'export.
+Native page preparation, shared by the browser presentation and the export.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p koharu-desktop
 cargo nextest run -p koharu-desktop
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

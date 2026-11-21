@@ -1,14 +1,12 @@
 # shenron-engine
 
-Moteur de jeu Rust: backend GPU, rendu 2D/3D, canvas vectoriel, bindings WASM.
+Rust game engine: GPU backend, 2D/3D rendering, vector canvas and WASM bindings.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p shenron-engine
 cargo nextest run -p shenron-engine
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

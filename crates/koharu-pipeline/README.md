@@ -1,14 +1,12 @@
 # koharu-pipeline
 
-Workflow de traitement de scène en processus pour Koharu.
+In-process scene processing workflow for Koharu.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p koharu-pipeline
 cargo nextest run -p koharu-pipeline
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

@@ -1,7 +1,7 @@
 # shenron-edge
 
 Reverse proxy and load balancer of the Shenron fleet: it replaces nginx on `fr2` (load balancer of
-dragonballfr.com) and then on `prd` (vhosts). ADR 0009, step 3. One binary, one TOML file, SIGHUP to
+dragonballfr.com) and then on `prd` (vhosts). Step 3 of shenron's ADR 0009 (`docs/decisions/`). One binary, one TOML file, SIGHUP to
 reload.
 
 ```
@@ -80,5 +80,5 @@ fill a gap. HSTS is added by Cloudflare today and moves to the edge when the pro
 
 `cargo test -p shenron-edge` covers the pure rules (pool selection and health, cache policy, key and
 variance, bypass, header rules, routing, config) and `tests/proxy.rs`, which runs a real server in
-front of a scripted origin. `scripts/ops/edge-header-diff.ts` replays URLs through nginx and
+front of a scripted origin. `scripts/ops/edge-header-diff.ts` (in shenron) replays URLs through nginx and
 through the edge on the same host and prints the headers that differ.

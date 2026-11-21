@@ -1,14 +1,12 @@
 # shenron-rag
 
-Connaissance Dragon Ball hors ligne: corpus, index local, persona, ingestion du corpus.
+Offline Dragon Ball knowledge: corpus, local index, persona and corpus ingestion.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p shenron-rag
 cargo nextest run -p shenron-rag
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

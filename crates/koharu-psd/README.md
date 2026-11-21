@@ -1,14 +1,12 @@
 # koharu-psd
 
-Export PSD depuis les révisions de scène Koharu et la présentation résolue par le renderer.
+PSD export from Koharu scene revisions and the presentation resolved by the renderer.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p koharu-psd
 cargo nextest run -p koharu-psd
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

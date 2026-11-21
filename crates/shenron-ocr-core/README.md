@@ -1,18 +1,11 @@
 # shenron-ocr-core
 
-<!-- catalog:begin unit -->
-> Portable versioned OCR result contract, provenance and quality states for Shenron.
+Portable OCR result contracts for Shenron: page identity, provenance, blocks, quality states, DocTags parsing and the SQLite deposit.
 
-| Type | Path |
-| :-- | :-- |
-| Rust crate | `src/ocr-core` |
-
-**Commands**
+## Development
 
 ```sh
 cargo test -p shenron-ocr-core
 ```
 
-Rust builds run on the build host or in CI, not on a workstation.
-
-<!-- catalog:end -->
+Builds run on the build host or in CI; workspace rules are in the root [README](../../README.md).

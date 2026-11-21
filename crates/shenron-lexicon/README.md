@@ -1,14 +1,12 @@
 # shenron-lexicon
 
-Lexique de traduction Dragon Ball (ja/fr/en): données embarquées, recherche, protection des termes autour d'une traduction.
+Dragon Ball translation lexicon (ja/fr/en): embedded data, search and term protection around a translation.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p shenron-lexicon
 cargo nextest run -p shenron-lexicon
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

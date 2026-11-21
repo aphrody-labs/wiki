@@ -1,14 +1,12 @@
 # koharu-ml
 
-Modèles et inférence de Koharu: détection de texte et de bulles, OCR, inpainting, disposition de page, avec benchmarks.
+Koharu models and inference: text and speech-bubble detection, OCR, inpainting and page layout, with benchmarks.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p koharu-ml
 cargo nextest run -p koharu-ml
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

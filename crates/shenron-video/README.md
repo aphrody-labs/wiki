@@ -1,14 +1,13 @@
 # shenron-video
 
-Bibliothèque vidéo Rust sans ffmpeg: décodage MPEG-1/2, encodage H.264, mux MP4 fragmenté, sondage, images fixes. Exclue du workspace Cargo (`exclude` dans `Cargo.toml`).
+Rust video library without ffmpeg: MPEG-1/2 decoding, H.264 encoding, fragmented MP4 muxing, probing and still images. Excluded from the Cargo workspace (`exclude` in `Cargo.toml`).
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
-cargo check --manifest-path crates/shenron-video/Cargo.toml
-cargo nextest run --manifest-path crates/shenron-video/Cargo.toml
+cd crates/shenron-video   # excluded from the workspace: own Cargo.lock
+cargo check
+cargo nextest run
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

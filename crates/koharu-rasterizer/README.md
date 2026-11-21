@@ -1,14 +1,12 @@
 # koharu-rasterizer
 
-Trames préparées portables et composition Vello/WGPU partagée.
+Portable prepared frames and the shared Vello/wgpu composition.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p koharu-rasterizer
 cargo nextest run -p koharu-rasterizer
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

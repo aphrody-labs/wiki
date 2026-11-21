@@ -1,14 +1,12 @@
 # shenron-desktop
 
-Shenron Studio (Tauri 3): le site, l'éditeur de traduction manga et les outils locaux dans une application bureau.
+Shenron Studio desktop shell (GPUI Kit): Koharu, Studio and Admin workspaces in one window.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p shenron-desktop
 cargo nextest run -p shenron-desktop
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).

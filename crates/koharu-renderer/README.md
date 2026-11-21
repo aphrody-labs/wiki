@@ -1,14 +1,12 @@
 # koharu-renderer
 
-Rendu retenu d'une page sémantique Koharu.
+Retained rendering of a Koharu semantic page.
 
-## Commandes
-
-Sur vps ou bunos, jamais sur le poste Windows.
+## Development
 
 ```sh
 cargo check -p koharu-renderer
 cargo nextest run -p koharu-renderer
 ```
 
-Lint du workspace: `cargo lint`. Règles générales: `AGENTS.md` à la racine.
+Builds run on the build host; workspace rules are in the root [README](../../README.md).
