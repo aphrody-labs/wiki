@@ -8,9 +8,30 @@
 #[cfg(feature = "server")]
 use dioxus::prelude::dioxus_server;
 use dioxus::prelude::{ServerFnError, dioxus_fullstack, server};
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde::{Deserialize, Deserializer, Serialize, de::DeserializeOwned};
 use thiserror::Error;
 use url::Url;
+
+fn deserialize_null_default<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+    T: Default + Deserialize<'de>,
+    D: Deserializer<'de>,
+{
+    Ok(Option::<T>::deserialize(deserializer)?.unwrap_or_default())
+}
+
+fn deserialize_opt_string_or_int<'de, D>(deserializer: D) -> Result<Option<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let val = Option::<serde_json::Value>::deserialize(deserializer)?;
+    Ok(match val {
+        None | Some(serde_json::Value::Null) => None,
+        Some(serde_json::Value::String(s)) => Some(s),
+        Some(serde_json::Value::Number(n)) => Some(n.to_string()),
+        Some(other) => Some(other.to_string()),
+    })
+}
 
 /// Default upstream Shenron API origin used when `SHENRON_API_URL` is not set.
 pub const DEFAULT_API_URL: &str = "http://127.0.0.1:3000";
@@ -52,16 +73,34 @@ pub struct HealthResponse {
 pub struct LiveFrame {
     #[serde(default)]
     pub id: String,
-    #[serde(default, alias = "src", alias = "image")]
+    #[serde(default, deserialize_with = "deserialize_null_default", alias = "src", alias = "image")]
     pub url: String,
-    #[serde(default, alias = "category", alias = "kind")]
+    #[serde(default, alias = "mirrorUrl")]
+    pub mirror_url: Option<String>,
+    #[serde(default, deserialize_with = "deserialize_null_default", alias = "category", alias = "kind")]
     pub pillar: String,
-    #[serde(default)]
+    #[serde(default, deserialize_with = "deserialize_null_default")]
     pub title: String,
+    #[serde(default)]
+    pub subtitle: Option<String>,
     #[serde(default)]
     pub alt: Option<String>,
     #[serde(default)]
     pub series: Option<String>,
+    #[serde(default)]
+    pub era: Option<String>,
+    #[serde(default, alias = "episodeNumber")]
+    pub episode_number: Option<u32>,
+    #[serde(default, alias = "timecodeSec")]
+    pub timecode_sec: Option<f64>,
+    #[serde(default, alias = "aspectRatio")]
+    pub aspect_ratio: Option<String>,
+    #[serde(default, alias = "isNotable")]
+    pub is_notable: bool,
+    #[serde(default)]
+    pub href: Option<String>,
+    #[serde(default)]
+    pub source: Option<String>,
     #[serde(default, alias = "dominantColor", alias = "aura")]
     pub dominant_color: Option<String>,
     #[serde(default, alias = "accentColor")]
@@ -101,7 +140,11 @@ impl LiveFrame {
 pub struct LiveFramesResponse {
     #[serde(default, alias = "items")]
     pub frames: Vec<LiveFrame>,
-    #[serde(default, alias = "updatedAt")]
+    #[serde(default)]
+    pub total: usize,
+    #[serde(default)]
+    pub series: Option<String>,
+    #[serde(default, alias = "generatedAt", alias = "updatedAt")]
     pub updated_at: Option<String>,
 }
 
@@ -119,25 +162,35 @@ pub struct WikiListPage<T> {
     pub offset: usize,
 }
 
-/// Public episode entry from `GET /api/public/wiki/episodes` or `/api/public/wiki/episodes/{slug}`.
+/// Public episode entry from `GET /api/v1/episodes` or `/api/v1/episodes/{slug}`.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct EpisodeRecord {
     #[serde(default)]
     pub id: i64,
     #[serde(default)]
     pub slug: Option<String>,
-    #[serde(default, alias = "episode_number")]
+    #[serde(default, alias = "canonicalSlug")]
+    pub canonical_slug: Option<String>,
+    #[serde(default, alias = "numberInSeries", alias = "episode_number")]
     pub number: Option<i64>,
     #[serde(default)]
     pub series: Option<String>,
     #[serde(default)]
     pub saga: Option<String>,
-    #[serde(default, alias = "title_fr")]
+    #[serde(default, deserialize_with = "deserialize_null_default", alias = "title_fr")]
     pub title: String,
-    #[serde(default, alias = "title_ja")]
+    #[serde(default, alias = "titleJa", alias = "title_ja")]
     pub title_ja: Option<String>,
-    #[serde(default, alias = "air_date")]
+    #[serde(default, deserialize_with = "deserialize_opt_string_or_int", alias = "airDate", alias = "air_date")]
     pub air_date: Option<String>,
+    #[serde(default, alias = "durationSec")]
+    pub duration_sec: Option<u32>,
+    #[serde(default)]
+    pub image: Option<String>,
+    #[serde(default, alias = "frameCount")]
+    pub frame_count: usize,
+    #[serde(default)]
+    pub playable: bool,
     #[serde(default)]
     pub synopsis: Option<String>,
 }
@@ -149,22 +202,25 @@ impl EpisodeRecord {
         if let Some(slug) = self.slug.as_deref().filter(|s| !s.trim().is_empty()) {
             return slug.to_owned();
         }
+        if let Some(canonical) = self.canonical_slug.as_deref().filter(|s| !s.trim().is_empty()) {
+            return canonical.to_owned();
+        }
         self.id.to_string()
     }
 }
 
-/// Public movie entry from `GET /api/public/wiki/movies`.
+/// Public movie entry from `GET /api/v1/movies`.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 pub struct MovieRecord {
     #[serde(default)]
     pub id: i64,
     #[serde(default)]
     pub slug: Option<String>,
-    #[serde(default, alias = "title_fr")]
+    #[serde(default, deserialize_with = "deserialize_null_default", alias = "title_fr")]
     pub title: String,
-    #[serde(default, alias = "title_ja")]
+    #[serde(default, alias = "titleJa", alias = "title_ja")]
     pub title_ja: Option<String>,
-    #[serde(default, alias = "release_date")]
+    #[serde(default, deserialize_with = "deserialize_opt_string_or_int", alias = "releaseDate", alias = "release_date")]
     pub release_date: Option<String>,
     #[serde(default)]
     pub series: Option<String>,
@@ -575,5 +631,57 @@ mod tests {
             ..EpisodeRecord::default()
         };
         assert_eq!(id_only.route_slug(), "42");
+    }
+
+    #[test]
+    fn decodes_camel_case_server_payloads_without_drift() {
+        let frames_json = r##"{
+            "frames": [{
+                "id": "dbs-beerus-1-0",
+                "kind": "episode",
+                "title": "Éveil",
+                "subtitle": "Beerus",
+                "series": "DBS_BEERUS",
+                "era": "Super",
+                "episodeNumber": 1,
+                "timecodeSec": 142,
+                "url": "https://cdn.dragonballfr.com/a.jpg",
+                "mirrorUrl": "https://cdn.dragonballfr.com/m.jpg",
+                "width": 1920,
+                "height": 1080,
+                "aspectRatio": "16:9",
+                "href": "/tv/dbs-beerus-001",
+                "isNotable": true,
+                "source": "shenron-cdn"
+            }],
+            "total": 1,
+            "series": "DBS_BEERUS",
+            "generatedAt": "2026-11-23T12:00:00.000Z"
+        }"##;
+        let frames: LiveFramesResponse = serde_json::from_str(frames_json).unwrap();
+        assert_eq!(frames.total, 1);
+        assert_eq!(frames.frames[0].pillar, "episode");
+        assert_eq!(frames.frames[0].episode_number, Some(1));
+        assert!(frames.frames[0].is_notable);
+        assert_eq!(frames.updated_at.as_deref(), Some("2026-11-23T12:00:00.000Z"));
+
+        let ep_json = r##"{
+            "id": 1,
+            "slug": null,
+            "canonicalSlug": "dbs-beerus-001",
+            "series": "DBS_BEERUS",
+            "numberInSeries": 1,
+            "title": null,
+            "titleJa": "破壊神",
+            "airDate": 1791590400,
+            "durationSec": 1440,
+            "frameCount": 3,
+            "playable": true
+        }"##;
+        let ep: EpisodeRecord = serde_json::from_str(ep_json).unwrap();
+        assert_eq!(ep.route_slug(), "dbs-beerus-001");
+        assert_eq!(ep.number, Some(1));
+        assert_eq!(ep.air_date.as_deref(), Some("1791590400"));
+        assert!(ep.playable);
     }
 }

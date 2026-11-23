@@ -13,7 +13,7 @@
 //!
 //! | Variable | Default | Used by |
 //! | --- | --- | --- |
-//! | `SHENRON_API_URL` | `https://bot.dragonballfr.com` | `rag_*`, `sources`, `data_coverage`, `wiki_*`, `manga_search/tomes/page`, `bot_*`, `news`, `admin_bot_*`, `admin_service*` |
+//! | `SHENRON_API_URL` | `https://api.dragonballfr.com` | `rag_*`, `sources`, `data_coverage`, `wiki_*`, `manga_search/tomes/page`, `bot_*`, `news`, `admin_bot_*`, `admin_service*` |
 //! | `SHENRON_SITE_API_URL` | `SHENRON_SITE_URL` | `manga_chapter/chapter_page/search_pages`, `timeline`, `databooks_*`, `canon_*`, `a2a_*`, `admin_databooks_deposit` |
 //! | `SHENRON_SITE_URL` | `https://dragonballfr.com` | absolute links in results |
 //!
@@ -92,7 +92,7 @@ fn site_base() -> String {
 }
 
 fn api_base() -> String {
-    url_env("SHENRON_API_URL", "https://bot.dragonballfr.com")
+    url_env("SHENRON_API_URL", "https://api.dragonballfr.com")
 }
 
 pub(crate) fn site_api_base() -> String {
