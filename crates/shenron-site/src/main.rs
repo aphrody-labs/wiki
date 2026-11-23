@@ -130,9 +130,53 @@ async fn run_server() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
 
+    async fn robots_txt() -> Response {
+        (
+            [(axum::http::header::CONTENT_TYPE, "text/plain; charset=utf-8")],
+            "User-agent: *\nAllow: /\nDisallow: /admin\nSitemap: https://dragonballfr.com/sitemap.xml\n",
+        )
+            .into_response()
+    }
+
+    async fn sitemap_xml() -> Response {
+        let urls = [
+            "https://dragonballfr.com/",
+            "https://tv.dragonballfr.com/",
+            "https://tv.dragonballfr.com/films",
+            "https://wiki.dragonballfr.com/",
+            "https://wiki.dragonballfr.com/personnages",
+            "https://wiki.dragonballfr.com/sagas",
+            "https://wiki.dragonballfr.com/episodes",
+            "https://wiki.dragonballfr.com/films",
+            "https://wiki.dragonballfr.com/chronologie",
+            "https://wiki.dragonballfr.com/sources",
+            "https://manga.dragonballfr.com/",
+            "https://games.dragonballfr.com/",
+        ];
+        let mut body = String::from(
+            r#"<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">"#,
+        );
+        for url in urls {
+            body.push_str("<url><loc>");
+            body.push_str(url);
+            body.push_str("</loc></url>");
+        }
+        body.push_str("</urlset>");
+        (
+            [
+                (axum::http::header::CONTENT_TYPE, "application/xml; charset=utf-8"),
+                (CACHE_CONTROL, "public, max-age=3600"),
+            ],
+            body,
+        )
+            .into_response()
+    }
+
     let api_router = Router::new()
         .route("/healthz", get(healthz))
         .route("/health", get(healthz))
+        .route("/robots.txt", get(robots_txt))
+        .route("/sitemap.xml", get(sitemap_xml))
         .route("/api/site/upstream-health", get(upstream_health))
         .with_state(state);
 

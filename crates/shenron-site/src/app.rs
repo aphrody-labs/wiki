@@ -14,8 +14,12 @@ use crate::api::{
     EpisodeRecord, LiveFrame, MovieRecord, TimelineEvent, TvVideo, load_episode_detail,
     load_episodes, load_live_frames, load_movies, load_timeline_events, load_tv_videos,
 };
+use crate::icons::{
+    ICON_ADMIN, ICON_DISCORD, ICON_GAMES, ICON_GITHUB, ICON_GLOBE, ICON_HOME, ICON_MANGA,
+    ICON_SEARCH, ICON_THEME_BEERUS, ICON_THEME_GOKU, ICON_THEME_NEUTRAL, ICON_TV, ICON_WIKI,
+};
 use crate::routes::{Locale, Route};
-use crate::theme::{SITE_STYLESHEET, ThemeMode};
+use crate::theme::{SITE_STYLESHEET, ThemeMode, toriyama_svg};
 
 /// Localized static UI copy for all 4 living pillars.
 #[derive(Debug, Clone, Copy)]
@@ -243,7 +247,13 @@ pub fn SiteShell() -> Element {
 
     let is_home = matches!(route, Route::Home {} | Route::LocaleHome { .. });
     let is_tv = matches!(route, Route::Tv {} | Route::LocaleTv { .. });
-    let is_manga = matches!(route, Route::Manga {} | Route::LocaleManga { .. });
+    let is_manga = matches!(
+        route,
+        Route::Manga {}
+            | Route::LocaleManga { .. }
+            | Route::MangaStudio {}
+            | Route::LocaleMangaStudio { .. }
+    );
     let is_games = matches!(route, Route::Games {} | Route::LocaleGames { .. });
     let is_episodes = matches!(
         route,
@@ -254,77 +264,190 @@ pub fn SiteShell() -> Element {
     );
     let is_movies = matches!(route, Route::Movies {} | Route::LocaleMovies { .. });
     let is_timeline = matches!(route, Route::Timeline {} | Route::LocaleTimeline { .. });
+    let is_wiki = is_episodes
+        || is_movies
+        || is_timeline
+        || matches!(
+            route,
+            Route::WikiHub {}
+                | Route::LocaleWikiHub { .. }
+                | Route::Characters {}
+                | Route::LocaleCharacters { .. }
+                | Route::Sagas {}
+                | Route::LocaleSagas { .. }
+                | Route::Sources {}
+                | Route::LocaleSources { .. }
+                | Route::Databooks {}
+                | Route::LocaleDatabooks { .. }
+        );
+    let is_search = matches!(route, Route::Search {} | Route::LocaleSearch { .. });
+    let is_admin = matches!(route, Route::Admin {} | Route::LocaleAdmin { .. });
+
+    let wordmark_html = toriyama_svg::wordmark_svg(32);
+    let sphere_html = toriyama_svg::dragon_ball_sphere_svg(28, Some("Dragon Ball FR"));
 
     rsx! {
         a { class: "sr-skip-link", href: "#main-content", "{copy.skip_to_content}" }
+
+        aside { class: "sr-app-rail", aria_label: copy.nav_label,
+            Link {
+                class: "sr-rail-brand",
+                to: Route::LocaleHome { lang: lang_code.clone() },
+                aria_label: "Dragon Ball FR",
+                span { dangerous_inner_html: "{sphere_html}" }
+            }
+            nav { class: "sr-rail-nav", aria_label: copy.nav_label,
+                Link {
+                    class: "sr-rail-item",
+                    to: Route::LocaleHome { lang: lang_code.clone() },
+                    aria_current: if is_home { Some("page") } else { None },
+                    title: copy.nav_home,
+                    span { class: "sr-rail-icon", dangerous_inner_html: "{ICON_HOME}" }
+                    span { class: "sr-rail-label", "{copy.nav_home}" }
+                }
+                Link {
+                    class: "sr-rail-item",
+                    to: Route::Tv {},
+                    aria_current: if is_tv { Some("page") } else { None },
+                    title: copy.nav_tv,
+                    span { class: "sr-rail-icon", dangerous_inner_html: "{ICON_TV}" }
+                    span { class: "sr-rail-label", "{copy.nav_tv}" }
+                }
+                Link {
+                    class: "sr-rail-item",
+                    to: Route::WikiHub {},
+                    aria_current: if is_wiki { Some("page") } else { None },
+                    title: "Wiki",
+                    span { class: "sr-rail-icon", dangerous_inner_html: "{ICON_WIKI}" }
+                    span { class: "sr-rail-label", "Wiki" }
+                }
+                Link {
+                    class: "sr-rail-item",
+                    to: Route::MangaStudio {},
+                    aria_current: if is_manga { Some("page") } else { None },
+                    title: copy.nav_manga,
+                    span { class: "sr-rail-icon", dangerous_inner_html: "{ICON_MANGA}" }
+                    span { class: "sr-rail-label", "{copy.nav_manga}" }
+                }
+                Link {
+                    class: "sr-rail-item",
+                    to: Route::Games {},
+                    aria_current: if is_games { Some("page") } else { None },
+                    title: copy.nav_games,
+                    span { class: "sr-rail-icon", dangerous_inner_html: "{ICON_GAMES}" }
+                    span { class: "sr-rail-label", "{copy.nav_games}" }
+                }
+            }
+            div { class: "sr-rail-footer",
+                Link {
+                    class: "sr-rail-icon-btn",
+                    to: Route::Admin {},
+                    aria_current: if is_admin { Some("page") } else { None },
+                    aria_label: "Administration",
+                    title: "Administration",
+                    span { dangerous_inner_html: "{ICON_ADMIN}" }
+                }
+            }
+        }
 
         header { class: "sr-header", role: "banner",
             div { class: "sr-header-inner",
                 Link {
                     class: "sr-brand",
                     to: Route::LocaleHome { lang: lang_code.clone() },
-                    span { "Shenron" }
-                    span { class: "sr-brand-jp", lang: "ja", "神龍" }
+                    aria_label: "Dragon Ball FR",
+                    span { dangerous_inner_html: "{wordmark_html}" }
                 }
 
                 nav { class: "sr-nav", aria_label: copy.nav_label,
                     Link {
                         class: "sr-nav-link",
-                        to: Route::LocaleHome { lang: lang_code.clone() },
-                        aria_current: if is_home { Some("page") } else { None },
-                        "{copy.nav_home}"
+                        to: Route::WikiHub {},
+                        aria_current: if is_wiki { Some("page") } else { None },
+                        span { class: "sr-inline-icon", dangerous_inner_html: "{ICON_WIKI}" }
+                        span { "Wiki" }
                     }
                     Link {
                         class: "sr-nav-link",
                         to: Route::Tv {},
                         aria_current: if is_tv { Some("page") } else { None },
-                        "{copy.nav_tv}"
+                        span { class: "sr-inline-icon", dangerous_inner_html: "{ICON_TV}" }
+                        span { "{copy.nav_tv}" }
                     }
                     Link {
                         class: "sr-nav-link",
-                        to: Route::Manga {},
+                        to: Route::MangaStudio {},
                         aria_current: if is_manga { Some("page") } else { None },
-                        "{copy.nav_manga}"
+                        span { class: "sr-inline-icon", dangerous_inner_html: "{ICON_MANGA}" }
+                        span { "{copy.nav_manga}" }
                     }
                     Link {
                         class: "sr-nav-link",
                         to: Route::Games {},
                         aria_current: if is_games { Some("page") } else { None },
-                        "{copy.nav_games}"
-                    }
-                    Link {
-                        class: "sr-nav-link",
-                        to: Route::Episodes {},
-                        aria_current: if is_episodes { Some("page") } else { None },
-                        "{copy.nav_episodes}"
-                    }
-                    Link {
-                        class: "sr-nav-link",
-                        to: Route::Movies {},
-                        aria_current: if is_movies { Some("page") } else { None },
-                        "{copy.nav_movies}"
+                        span { class: "sr-inline-icon", dangerous_inner_html: "{ICON_GAMES}" }
+                        span { "{copy.nav_games}" }
                     }
                     Link {
                         class: "sr-nav-link",
                         to: Route::Timeline {},
                         aria_current: if is_timeline { Some("page") } else { None },
-                        "{copy.nav_timeline}"
+                        span { "{copy.nav_timeline}" }
                     }
                 }
 
                 div { class: "sr-controls",
+                    Link {
+                        class: "sr-icon-link",
+                        to: Route::Search {},
+                        aria_current: if is_search { Some("page") } else { None },
+                        aria_label: "Rechercher",
+                        title: "Rechercher",
+                        span { dangerous_inner_html: "{ICON_SEARCH}" }
+                    }
+                    a {
+                        class: "sr-icon-link",
+                        href: "https://discord.gg/dragonballfr",
+                        target: "_blank",
+                        rel: "noopener noreferrer",
+                        aria_label: "Discord Dragon Ball FR",
+                        title: "Discord",
+                        span { dangerous_inner_html: "{ICON_DISCORD}" }
+                    }
+                    a {
+                        class: "sr-icon-link",
+                        href: "https://github.com/aphrody-labs/shenron",
+                        target: "_blank",
+                        rel: "noopener noreferrer",
+                        aria_label: "GitHub Aphrody Labs",
+                        title: "GitHub",
+                        span { dangerous_inner_html: "{ICON_GITHUB}" }
+                    }
+
                     div {
                         class: "sr-control-group",
                         role: "radiogroup",
                         aria_label: copy.theme_group_label,
                         for mode in ThemeMode::ALL {
-                            button {
-                                r#type: "button",
-                                class: "sr-chip-btn",
-                                role: "radio",
-                                aria_checked: if active_theme == mode { "true" } else { "false" },
-                                onclick: move |_| theme.set(mode),
-                                "{mode.label()}"
+                            {
+                                let icon = match mode {
+                                    ThemeMode::Neutral => ICON_THEME_NEUTRAL,
+                                    ThemeMode::Goku => ICON_THEME_GOKU,
+                                    ThemeMode::Beerus => ICON_THEME_BEERUS,
+                                };
+                                rsx! {
+                                    button {
+                                        r#type: "button",
+                                        class: "sr-chip-btn",
+                                        role: "radio",
+                                        aria_checked: if active_theme == mode { "true" } else { "false" },
+                                        aria_label: mode.label(),
+                                        title: mode.label(),
+                                        onclick: move |_| theme.set(mode),
+                                        span { class: "sr-inline-icon", dangerous_inner_html: "{icon}" }
+                                        span { "{mode.label()}" }
+                                    }
+                                }
                             }
                         }
                     }
@@ -333,6 +456,7 @@ pub fn SiteShell() -> Element {
                         class: "sr-control-group",
                         role: "radiogroup",
                         aria_label: copy.locale_group_label,
+                        span { class: "sr-inline-icon sr-locale-globe", dangerous_inner_html: "{ICON_GLOBE}" }
                         for candidate in Locale::ALL {
                             {
                                 let target_route = route.with_locale(candidate);
@@ -447,6 +571,150 @@ pub fn Timeline() -> Element {
 #[component]
 pub fn LocaleTimeline(lang: String) -> Element {
     rsx! { TimelineView { locale: Locale::parse_or_default(&lang) } }
+}
+
+#[component]
+pub fn MangaStudio() -> Element {
+    rsx! { MangaView { locale: Locale::Fr } }
+}
+
+#[component]
+pub fn LocaleMangaStudio(lang: String) -> Element {
+    rsx! { MangaView { locale: Locale::parse_or_default(&lang) } }
+}
+
+#[component]
+pub fn WikiHub() -> Element {
+    rsx! { WikiHubView { locale: Locale::Fr } }
+}
+
+#[component]
+pub fn LocaleWikiHub(lang: String) -> Element {
+    rsx! { WikiHubView { locale: Locale::parse_or_default(&lang) } }
+}
+
+#[component]
+pub fn Characters() -> Element {
+    rsx! {
+        CatalogPortalView {
+            locale: Locale::Fr,
+            title: "Personnages Dragon Ball",
+            lead: "Fiches encyclopédiques canoniques (Dragon Ball, Z, GT, Super, Daima) sourcées depuis les Daizenshuu et Chozenshuu.",
+            api_path: "https://api.dragonballfr.com/api/public/wiki/characters",
+            back_to: Route::WikiHub {},
+        }
+    }
+}
+
+#[component]
+pub fn LocaleCharacters(lang: String) -> Element {
+    rsx! {
+        CatalogPortalView {
+            locale: Locale::parse_or_default(&lang),
+            title: "Personnages Dragon Ball",
+            lead: "Fiches encyclopédiques canoniques (Dragon Ball, Z, GT, Super, Daima) sourcées depuis les Daizenshuu et Chozenshuu.",
+            api_path: "https://api.dragonballfr.com/api/public/wiki/characters",
+            back_to: Route::WikiHub {},
+        }
+    }
+}
+
+#[component]
+pub fn Sagas() -> Element {
+    rsx! {
+        CatalogPortalView {
+            locale: Locale::Fr,
+            title: "Sagas et arcs narratifs",
+            lead: "Les 41 arcs majeurs de l’univers Dragon Ball, du Pilaf Arc jusqu’à Dragon Ball Daima.",
+            api_path: "https://api.dragonballfr.com/api/public/wiki/sagas",
+            back_to: Route::WikiHub {},
+        }
+    }
+}
+
+#[component]
+pub fn LocaleSagas(lang: String) -> Element {
+    rsx! {
+        CatalogPortalView {
+            locale: Locale::parse_or_default(&lang),
+            title: "Sagas et arcs narratifs",
+            lead: "Les 41 arcs majeurs de l’univers Dragon Ball, du Pilaf Arc jusqu’à Dragon Ball Daima.",
+            api_path: "https://api.dragonballfr.com/api/public/wiki/sagas",
+            back_to: Route::WikiHub {},
+        }
+    }
+}
+
+#[component]
+pub fn Sources() -> Element {
+    rsx! {
+        CatalogPortalView {
+            locale: Locale::Fr,
+            title: "Sources et bibliographie",
+            lead: "Références vérifiées : manga Kanzenban, interviews d’Akira Toriyama, Daizenshuu et guides officiels Shueisha.",
+            api_path: "https://api.dragonballfr.com/api/public/wiki/sources",
+            back_to: Route::WikiHub {},
+        }
+    }
+}
+
+#[component]
+pub fn LocaleSources(lang: String) -> Element {
+    rsx! {
+        CatalogPortalView {
+            locale: Locale::parse_or_default(&lang),
+            title: "Sources et bibliographie",
+            lead: "Références vérifiées : manga Kanzenban, interviews d’Akira Toriyama, Daizenshuu et guides officiels Shueisha.",
+            api_path: "https://api.dragonballfr.com/api/public/wiki/sources",
+            back_to: Route::WikiHub {},
+        }
+    }
+}
+
+#[component]
+pub fn Databooks() -> Element {
+    rsx! {
+        CatalogPortalView {
+            locale: Locale::Fr,
+            title: "Databooks et archives",
+            lead: "483 éditions et encyclopédies officielles indexées : Daizenshuu, Chozenshuu, Super Exciting Guides et Landmark.",
+            api_path: "https://api.dragonballfr.com/api/v1/databooks",
+            back_to: Route::WikiHub {},
+        }
+    }
+}
+
+#[component]
+pub fn LocaleDatabooks(lang: String) -> Element {
+    rsx! {
+        CatalogPortalView {
+            locale: Locale::parse_or_default(&lang),
+            title: "Databooks et archives",
+            lead: "483 éditions et encyclopédies officielles indexées : Daizenshuu, Chozenshuu, Super Exciting Guides et Landmark.",
+            api_path: "https://api.dragonballfr.com/api/v1/databooks",
+            back_to: Route::WikiHub {},
+        }
+    }
+}
+
+#[component]
+pub fn Search() -> Element {
+    rsx! { SearchView { locale: Locale::Fr } }
+}
+
+#[component]
+pub fn LocaleSearch(lang: String) -> Element {
+    rsx! { SearchView { locale: Locale::parse_or_default(&lang) } }
+}
+
+#[component]
+pub fn Admin() -> Element {
+    rsx! { AdminView { locale: Locale::Fr } }
+}
+
+#[component]
+pub fn LocaleAdmin(lang: String) -> Element {
+    rsx! { AdminView { locale: Locale::parse_or_default(&lang) } }
 }
 
 #[component]
@@ -1123,6 +1391,151 @@ fn TimelineRow(event: TimelineEvent) -> Element {
                 p { class: "sr-muted", "{event.description}" }
             }
             span { class: "sr-tabular", "{event.era}" }
+        }
+    }
+}
+
+#[component]
+fn WikiHubView(locale: Locale) -> Element {
+    let copy = copy_for(locale);
+    rsx! {
+        document::Title { "Encyclopédie Dragon Ball FR — Shenron" }
+        document::Meta {
+            name: "description",
+            content: "Portail encyclopédique complet : personnages, sagas, 882 épisodes, films, chronologie, databooks et sources.",
+        }
+
+        h1 { class: "sr-title", "Encyclopédie Dragon Ball FR" }
+        p { class: "sr-lead", "Accès direct à l’ensemble des sections migrées du plan du site Shenron : épisodes, films, personnages, sagas, chronologie, databooks et sources." }
+
+        section { class: "sr-pillars", aria_label: "Sections de l’encyclopédie",
+            article { class: "sr-pillar-panel",
+                div { class: "sr-pillar-body",
+                    h2 { class: "sr-pillar-heading", Link { to: Route::Episodes {}, "{copy.episodes_title}" } }
+                    p { class: "sr-muted", "{copy.episodes_lead}" }
+                }
+            }
+            article { class: "sr-pillar-panel",
+                div { class: "sr-pillar-body",
+                    h2 { class: "sr-pillar-heading", Link { to: Route::Movies {}, "{copy.movies_title}" } }
+                    p { class: "sr-muted", "{copy.movies_lead}" }
+                }
+            }
+            article { class: "sr-pillar-panel",
+                div { class: "sr-pillar-body",
+                    h2 { class: "sr-pillar-heading", Link { to: Route::Characters {}, "Personnages" } }
+                    p { class: "sr-muted", "Fiches canoniques des combattants, techniques, transformations et généalogies." }
+                }
+            }
+            article { class: "sr-pillar-panel",
+                div { class: "sr-pillar-body",
+                    h2 { class: "sr-pillar-heading", Link { to: Route::Sagas {}, "Sagas et arcs" } }
+                    p { class: "sr-muted", "Les 41 arcs narratifs de Dragon Ball, Z, GT, Super et Daima." }
+                }
+            }
+            article { class: "sr-pillar-panel",
+                div { class: "sr-pillar-body",
+                    h2 { class: "sr-pillar-heading", Link { to: Route::Timeline {}, "{copy.timeline_title}" } }
+                    p { class: "sr-muted", "{copy.timeline_lead}" }
+                }
+            }
+            article { class: "sr-pillar-panel",
+                div { class: "sr-pillar-body",
+                    h2 { class: "sr-pillar-heading", Link { to: Route::Databooks {}, "Databooks et sources" } }
+                    p { class: "sr-muted", "483 ouvrages officiels Daizenshuu, Chozenshuu et bibliographie Shueisha." }
+                }
+            }
+        }
+    }
+}
+
+#[component]
+fn CatalogPortalView(
+    locale: Locale,
+    title: &'static str,
+    lead: &'static str,
+    api_path: &'static str,
+    back_to: Route,
+) -> Element {
+    let _copy = copy_for(locale);
+    rsx! {
+        document::Title { "{title} — Shenron" }
+        document::Meta { name: "description", content: lead }
+
+        div { class: "sr-toolbar",
+            Link { class: "sr-cta-secondary", to: back_to, "Retour à l’encyclopédie" }
+        }
+        h1 { class: "sr-title", "{title}" }
+        p { class: "sr-lead", "{lead}" }
+
+        div { class: "sr-status",
+            p { class: "sr-muted", "Source API publique Shenron : " }
+            a { class: "sr-cta-secondary", href: "{api_path}", target: "_blank", rel: "noopener noreferrer", "{api_path}" }
+        }
+    }
+}
+
+#[component]
+fn SearchView(locale: Locale) -> Element {
+    let copy = copy_for(locale);
+    let mut query = use_signal(String::new);
+    let episodes = use_server_future(move || load_episodes(80, 0, None))?;
+    let needle = query.read().trim().to_ascii_lowercase();
+
+    rsx! {
+        document::Title { "Recherche — Shenron" }
+        document::Meta { name: "description", content: "Recherche instantanée dans le catalogue Dragon Ball FR." }
+
+        h1 { class: "sr-title", "Recherche Dragon Ball FR" }
+        p { class: "sr-lead", "Filtrez instantanément les épisodes, films, mangas et arcs de l’encyclopédie." }
+
+        div { class: "sr-toolbar",
+            label { class: "sr-tabular", r#for: "global-search-input", "{copy.episodes_search_label}" }
+            input {
+                id: "global-search-input",
+                class: "sr-input",
+                r#type: "search",
+                value: "{query}",
+                placeholder: copy.episodes_search_placeholder,
+                oninput: move |evt| query.set(evt.value()),
+            }
+        }
+
+        match &*episodes.read() {
+            None => rsx! { p { class: "sr-status", role: "status", "{copy.loading}" } },
+            Some(Err(err)) => rsx! { p { class: "sr-status sr-status-error", role: "alert", "{copy.api_unavailable} ({err})" } },
+            Some(Ok(page)) => {
+                let visible: Vec<&EpisodeRecord> =
+                    page.items.iter().filter(|ep| matches_episode_filter(ep, &needle)).take(25).collect();
+                if visible.is_empty() {
+                    rsx! { p { class: "sr-status", role: "status", "{copy.empty}" } }
+                } else {
+                    rsx! {
+                        ul { class: "sr-list", aria_label: "Résultats de recherche",
+                            for ep in visible {
+                                EpisodeRow { episode: ep.clone() }
+                            }
+                        }
+                    }
+                }
+            },
+        }
+    }
+}
+
+#[component]
+fn AdminView(locale: Locale) -> Element {
+    let _copy = copy_for(locale);
+    rsx! {
+        document::Title { "Administration — Shenron" }
+        document::Meta { name: "description", content: "Console d’administration Shenron protégée par Cloudflare Zero Trust Access." }
+
+        h1 { class: "sr-title", "Console d’administration Shenron" }
+        p { class: "sr-lead", "Accès réservé aux opérateurs via Cloudflare Zero Trust Access et jetons de service." }
+
+        div { class: "sr-actions",
+            a { class: "sr-cta", href: "https://admin.dragonballfr.com/", "Ouvrir admin.dragonballfr.com" }
+            Link { class: "sr-cta-secondary", to: Route::Home {}, "Retour au portail" }
         }
     }
 }

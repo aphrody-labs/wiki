@@ -9,5 +9,6 @@
 
 pub mod api;
 pub mod app;
+pub mod icons;
 pub mod routes;
 pub mod theme;
