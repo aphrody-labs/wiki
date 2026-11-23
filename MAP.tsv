@@ -1,0 +1,48 @@
+area	files	bytes	tier	gate
+(root)	12	439680	config	just check
+.cargo	1	3590	config	just check
+crates/dragon-pixel	20	194435	first-party	cargo test -p dragon-pixel
+crates/koharu-agent	13	44805	first-party	cargo test -p koharu-agent
+crates/koharu-app	3	2625	first-party	cargo test -p koharu-app
+crates/koharu-canvas	7	86681	first-party	cargo test -p koharu-canvas
+crates/koharu-desktop	3	20418	first-party	cargo test -p koharu-desktop
+crates/koharu-library	23	267115	first-party	cargo test -p koharu-library
+crates/koharu-ml	132	3522393	first-party	cargo test -p koharu-ml
+crates/koharu-pipeline	27	229662	first-party	cargo test -p koharu-pipeline
+crates/koharu-psd	10	82612	first-party	cargo test -p koharu-psd
+crates/koharu-rasterizer	10	118740	first-party	cargo test -p koharu-rasterizer
+crates/koharu-renderer	18	376584	first-party	cargo test -p koharu-renderer
+crates/koharu-scene	27	230785	first-party	cargo test -p koharu-scene
+crates/koharu-secrets	5	27312	first-party	cargo test -p koharu-secrets
+crates/koharu-storage	12	45785	first-party	cargo test -p koharu-storage
+crates/koharu-translator	26	203704	first-party	cargo test -p koharu-translator
+crates/koharu-web	4	23095	first-party	cargo test -p koharu-web
+crates/shenron-admin	5	18741	first-party	cargo test -p shenron-admin
+crates/shenron-admin-ui	8	11689	first-party	cargo test -p shenron-admin-ui
+crates/shenron-api	7	22915	first-party	cargo test -p shenron-api
+crates/shenron-cli	18	196670	first-party	cargo test -p shenron-cli
+crates/shenron-deployd	16	187347	standalone	cargo test --manifest-path crates/shenron-deployd/Cargo.toml
+crates/shenron-desktop	10	77307	first-party	cargo test -p shenron-desktop
+crates/shenron-edge	20	134585	first-party	cargo test -p shenron-edge
+crates/shenron-engine	47	565466	first-party	cargo test -p shenron-engine
+crates/shenron-ffi	15	168278	first-party	cargo test -p shenron-ffi
+crates/shenron-gallery	10	87816	first-party	cargo test -p shenron-gallery
+crates/shenron-gpu	14	95387	first-party	cargo test -p shenron-gpu
+crates/shenron-home	36	266229	first-party	cargo test -p shenron-home
+crates/shenron-jev	20	142712	first-party	cargo test -p shenron-jev
+crates/shenron-lexicon	8	50825	first-party	cargo test -p shenron-lexicon
+crates/shenron-manga	8	57167	first-party	cargo test -p shenron-manga
+crates/shenron-mcp	21	401499	first-party	cargo test -p shenron-mcp
+crates/shenron-memory	2	8899	first-party	cargo test -p shenron-memory
+crates/shenron-ocr-core	7	91857	first-party	cargo test -p shenron-ocr-core
+crates/shenron-panels	7	58745	first-party	cargo test -p shenron-panels
+crates/shenron-rag	15	128760	first-party	cargo test -p shenron-rag
+crates/shenron-rag-core	22	249518	first-party	cargo test -p shenron-rag-core
+crates/shenron-re	50	559004	first-party	cargo test -p shenron-re
+crates/shenron-site	11	361306	standalone	cargo test --manifest-path crates/shenron-site/Cargo.toml
+crates/shenron-studio	3	2319	first-party	cargo test -p shenron-studio
+crates/shenron-theme	6	39243	first-party	cargo test -p shenron-theme
+crates/shenron-tv	7	670411	standalone	cargo test --manifest-path crates/shenron-tv/Cargo.toml
+crates/shenron-video	4	21783	standalone	cargo test --manifest-path crates/shenron-video/Cargo.toml
+crates/xtask	2	7268	first-party	cargo test -p xtask
+replica	36	258114	config	just check
