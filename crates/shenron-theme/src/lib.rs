@@ -8,6 +8,8 @@
 pub mod css;
 pub mod toriyama_svg;
 
+#[cfg(feature = "gpui")]
+mod gpui_impl {
 use std::rc::Rc;
 use std::time::Duration;
 
@@ -284,3 +286,7 @@ mod tests {
         }
     }
 }
+}
+
+#[cfg(feature = "gpui")]
+pub use gpui_impl::*;

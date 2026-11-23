@@ -42,6 +42,7 @@ rustls = { version = "0.23.46", default-features = false, features = [
 ], optional = true }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
+shenron-theme = { path = "../shenron-theme", default-features = false }
 thiserror = "2.0.21"
 tokio = { version = "1.54.1", features = [
   "rt-multi-thread",

@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 //! Clean-room Bandai / Unreal / Steam virtual asset & ECS foundation for Shenron.
 //!
-//! Maps Unreal-style virtual mount points (`/Game/DBXV2`, `/Game/DBFZ`) directly
-//! onto the real-time `fr1` XFS CDN (`http://10.200.77.1:8800`) so Bevy/Dioxus
-//! runtimes stream CPK and UE4 PAK assets on demand without copying game binaries.
+//! Merged from the former standalone `shenron-game` (`aphrody-game`) crate into `aphrody-re`
+//! so every Dragon Ball game archive and virtual CDN mount lives in one canonical Rust crate.
 
 use serde::{Deserialize, Serialize};
 
@@ -45,6 +44,7 @@ pub const MOUNTS: [VirtualMount; 2] = [
 
 /// Resolve an Unreal-style virtual path (`/Game/DBXV2/...` or `/Game/DBFZ/...`)
 /// to its live `fr1` XFS CDN URL.
+#[must_use]
 pub fn resolve_virtual_url(virtual_path: &str, origin: &str) -> Option<String> {
     let origin = origin.trim_end_matches('/');
     for mount in MOUNTS {

@@ -14,6 +14,7 @@
 //!   double-ring `:focus-visible`, `prefers-reduced-motion`).
 
 use serde::{Deserialize, Serialize};
+pub use shenron_theme::{css as shared_css, toriyama_svg};
 
 /// Visual theme modes exposed in the top bar switcher.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash, Serialize, Deserialize)]

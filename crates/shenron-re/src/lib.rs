@@ -6,6 +6,7 @@
 //! (`wasm`) and CLI (`bin/nie-dbxv2-re`).
 
 pub mod game;
+pub mod game_runtime;
 pub use game::{catalog, error, formats, fs, inventory, live, steam, text, unified, world};
 
 pub mod ffi;
