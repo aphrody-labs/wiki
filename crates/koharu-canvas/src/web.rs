@@ -994,10 +994,11 @@ pub struct WebCanvas {
 #[wasm_bindgen(js_name = createCanvas)]
 pub async fn create_canvas(element: HtmlCanvasElement) -> Result<WebCanvas, JsValue> {
     let window = web_sys::window().ok_or_else(|| js_message("browser window is unavailable"))?;
-    let instance = wgpu::Instance::new(wgpu::InstanceDescriptor {
+    let instance = wgpu::util::new_instance_with_webgpu_detection(wgpu::InstanceDescriptor {
         backends: wgpu::Backends::BROWSER_WEBGPU,
         ..wgpu::InstanceDescriptor::new_without_display_handle()
-    });
+    })
+    .await;
     let surface =
         instance.create_surface(wgpu::SurfaceTarget::Canvas(element.clone())).map_err(js_error)?;
     let adapter = instance
@@ -1019,6 +1020,9 @@ pub async fn create_canvas(element: HtmlCanvasElement) -> Result<WebCanvas, JsVa
     let (device, queue) = adapter
         .request_device(&wgpu::DeviceDescriptor {
             label: Some("koharu browser WebGPU device"),
+            required_features: wgpu::Features::empty(),
+            required_limits: wgpu::Limits::downlevel_webgl2_defaults()
+                .using_resolution(adapter.limits()),
             ..Default::default()
         })
         .await
