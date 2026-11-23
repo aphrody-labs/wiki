@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: Apache-2.0
+[application]
+name = "shenron-site"
+default_platform = "web"
+
+[web.app]
+title = "Shenron — Dragon Ball FR"
+
+[web.watcher]
+reload_html = true
+watch_path = ["src"]
+
+[web.resource]
+style = []
+script = []

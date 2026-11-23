@@ -97,23 +97,85 @@ pub fn theme_set() -> ThemeSet {
     serde_json::from_str(THEME_SET_JSON).expect("themes/shenron.json is generated valid")
 }
 
-/// Installs the Shenron light and dark themes and switches to `mode`.
-pub fn init(cx: &mut App, mode: ThemeMode) {
+/// Named Shenron GPUI themes bundled in `themes/shenron.json`.
+///
+/// `Neutre`, `GokuSsg` and `Beerus` mirror the verified 3-mode WCAG AA/AAA web palette
+/// (`replica/design/tokens.json` and `replica/design/themes-3modes.css`), while `Nuit` and
+/// `Jour` remain the default dark/light themes for backwards compatibility.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ShenronThemeVariant {
+    Neutre,
+    GokuSsg,
+    Beerus,
+    Nuit,
+    Jour,
+}
+
+impl ShenronThemeVariant {
+    /// The three WCAG AA/AAA dark modes shared across web, desktop, and studio surfaces.
+    pub const AAA_MODES: [Self; 3] = [Self::Neutre, Self::GokuSsg, Self::Beerus];
+
+    /// Exact theme name in `themes/shenron.json`.
+    pub const fn name(self) -> &'static str {
+        match self {
+            Self::Neutre => "Shenron Neutre",
+            Self::GokuSsg => "Shenron Goku SSG",
+            Self::Beerus => "Shenron Beerus",
+            Self::Nuit => "Shenron Nuit",
+            Self::Jour => "Shenron Jour",
+        }
+    }
+
+    /// Underlying GPUI light/dark mode for this variant.
+    pub const fn mode(self) -> ThemeMode {
+        match self {
+            Self::Jour => ThemeMode::Light,
+            Self::Neutre | Self::GokuSsg | Self::Beerus | Self::Nuit => ThemeMode::Dark,
+        }
+    }
+}
+
+/// Switches the active GPUI theme to a named [`ShenronThemeVariant`].
+pub fn apply_variant(cx: &mut App, variant: ShenronThemeVariant) {
+    let target = variant.name();
+    let set = theme_set();
+    let mut selected = None;
+    let mut default_dark = None;
+    let mut default_light = None;
+    for config in set.themes {
+        let config = Rc::new(config);
+        if config.name.as_ref() == target {
+            selected = Some(Rc::clone(&config));
+        }
+        if config.name.as_ref() == "Shenron Nuit" {
+            default_dark = Some(Rc::clone(&config));
+        } else if config.name.as_ref() == "Shenron Jour" {
+            default_light = Some(Rc::clone(&config));
+        }
+    }
+    let selected = selected.unwrap_or_else(|| panic!("theme {target:?} missing from shenron.json"));
+    Theme::update(cx, |theme| {
+        if let Some(dark) = default_dark {
+            theme.dark_theme = dark;
+        }
+        if let Some(light) = default_light {
+            theme.light_theme = light;
+        }
+        if selected.mode.is_dark() {
+            theme.dark_theme = selected;
+        } else {
+            theme.light_theme = selected;
+        }
+    });
+    Theme::change(variant.mode(), None, cx);
+}
+
+/// Installs the Shenron theme set and switches to a named [`ShenronThemeVariant`].
+pub fn init_variant(cx: &mut App, variant: ShenronThemeVariant) {
     if let Err(error) = ThemeRegistry::global_mut(cx).load_themes_from_str(THEME_SET_JSON) {
         panic!("themes/shenron.json does not load: {error}");
     }
-    let set = theme_set();
-    Theme::update(cx, |theme| {
-        for config in set.themes {
-            let config = Rc::new(config);
-            if config.mode.is_dark() {
-                theme.dark_theme = config;
-            } else {
-                theme.light_theme = config;
-            }
-        }
-    });
-    Theme::change(mode, None, cx);
+    apply_variant(cx, variant);
     let springs = expressive_springs();
     Theme::update(cx, |theme| {
         // Controls (switch thumbs, toggles) move with the fast spatial spring, layout moves with the
@@ -122,6 +184,16 @@ pub fn init(cx: &mut App, mode: ThemeMode) {
         theme.motion.spring_move =
             springs.default_spatial.to_gpui().with_epsilon(theme.motion.spring_move.epsilon());
     });
+}
+
+/// Installs the Shenron light and dark themes and switches to `mode`.
+pub fn init(cx: &mut App, mode: ThemeMode) {
+    let variant = if mode.is_dark() {
+        ShenronThemeVariant::Nuit
+    } else {
+        ShenronThemeVariant::Jour
+    };
+    init_variant(cx, variant);
 }
 
 #[cfg(test)]
@@ -170,10 +242,42 @@ mod tests {
         assert!((response - 0.3223).abs() < 1e-3, "response {response}");
     }
 
+    #[gpui_kit::test]
+    fn aaa_variants_apply_expected_palettes(cx: &mut gpui_kit::TestAppContext) {
+        cx.update(|cx| {
+            gpui_kit::init(cx);
+            init_variant(cx, ShenronThemeVariant::Neutre);
+            let theme = Theme::global(cx);
+            assert_eq!(theme.theme_name().as_ref(), "Shenron Neutre");
+            assert_eq!(theme.background, color("#121317"));
+            assert_eq!(theme.foreground, color("#f8f9fc"));
+            assert_eq!(theme.primary, color("#edc760"));
+
+            apply_variant(cx, ShenronThemeVariant::GokuSsg);
+            let theme = Theme::global(cx);
+            assert_eq!(theme.theme_name().as_ref(), "Shenron Goku SSG");
+            assert_eq!(theme.background, color("#120906"));
+            assert_eq!(theme.primary, color("#ff7a1a"));
+
+            apply_variant(cx, ShenronThemeVariant::Beerus);
+            let theme = Theme::global(cx);
+            assert_eq!(theme.theme_name().as_ref(), "Shenron Beerus");
+            assert_eq!(theme.background, color("#0b0714"));
+            assert_eq!(theme.primary, color("#c84bff"));
+        });
+    }
+
     #[test]
-    fn theme_set_has_one_theme_per_mode() {
+    fn theme_set_contains_base_and_three_aaa_modes() {
         let set = theme_set();
         let dark = set.themes.iter().filter(|config| config.mode.is_dark()).count();
-        assert_eq!((set.themes.len(), dark), (2, 1));
+        assert_eq!((set.themes.len(), dark), (5, 4));
+        for variant in ShenronThemeVariant::AAA_MODES {
+            assert!(
+                set.themes.iter().any(|config| config.name.as_ref() == variant.name()),
+                "missing variant {}",
+                variant.name()
+            );
+        }
     }
 }

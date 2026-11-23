@@ -22,6 +22,27 @@ wasm = "check -p koharu-canvas --lib --target wasm32-unknown-unknown"
 docs = "doc --workspace --no-deps"
 # Repository tasks in Rust (crates/xtask): `cargo xtask map`.
 xtask = "run --quiet -p xtask --"
+# Emit LLVM IR for a crate in release mode (e.g. `cargo ir -p shenron-engine --lib`).
+ir = "rustc --release -- --emit=llvm-ir"
+# Production Fat LTO build (output in target/production).
+prod = "build --profile production"
+# Size-optimized WebAssembly production build (output in target/wasm32-unknown-unknown/wasm).
+wasm-prod = "build --profile wasm --target wasm32-unknown-unknown"
+# Locked metadata check for the standalone Dioxus 0.8 + Blitz site crate across all features.
+site-meta = "metadata --locked --manifest-path crates/shenron-site/Cargo.toml --features server,web,native"
+
+# Fast Linux linking with clang + mold (verified on fr1: clang 23.1.6 + mold 3.0.0; wild 0.11.0 is
+# also installed on fr1, but clang rejects `-fuse-ld=wild` and mold supports full Fat LTO).
+# On a Linux dev box without clang/mold, install `clang` and `mold` or override via
+# `CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER=cc` and `CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_RUSTFLAGS=""`
+# (or in untracked `.cargo/local.toml`).
+[target.x86_64-unknown-linux-gnu]
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=mold"]
+
+# WebAssembly SIMD, bulk memory, and mutable globals for smaller, faster browser bundles.
+[target.wasm32-unknown-unknown]
+rustflags = ["-C", "target-feature=+simd128,+bulk-memory,+mutable-globals"]
 
 [env]
 # The one knob to the canonical data owned by the sibling shenron checkout (../shenron/data from this

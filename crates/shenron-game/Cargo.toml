@@ -1,0 +1,13 @@
+[package]
+name = "shenron-game"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.100"
+license = "Apache-2.0"
+description = "Clean-room Bandai/Unreal/Steam game runtime & virtual XFS CDN asset mount layer for Shenron (Bevy-ready ECS)."
+
+[features]
+default = []
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }

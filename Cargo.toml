@@ -5,7 +5,12 @@
 [workspace]
 resolver = "3"
 members = ["crates/*"]
-exclude = ["crates/shenron-video", "crates/shenron-tv", "crates/shenron-deployd"]
+exclude = [
+  "crates/shenron-video",
+  "crates/shenron-tv",
+  "crates/shenron-deployd",
+  "crates/shenron-site",
+]
 
 [workspace.package]
 version = "1.4.5"
@@ -305,6 +310,7 @@ strip = "debuginfo"
 # server process that loads it.
 [profile.production]
 inherits = "release"
+opt-level = 3
 lto = "fat"
 codegen-units = 1
 strip = "symbols"
@@ -315,6 +321,16 @@ strip = "symbols"
 [profile.production-abort]
 inherits = "production"
 panic = "abort"
+
+# Shipped WebAssembly bundles: `cargo wasm-prod` (output in target/wasm32-unknown-unknown/wasm).
+# Optimizes aggressively for binary size with Fat LTO and no unwinding tables.
+[profile.wasm]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
 
 [profile.dev.build-override]
 codegen-units = 16

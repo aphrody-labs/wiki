@@ -1,0 +1,108 @@
+# SPDX-License-Identifier: Apache-2.0
+# Standalone crate (own Cargo.lock, excluded from the main workspace like shenron-deployd and
+# shenron-tv): combines our patched Dioxus 0.8 + Blitz native stack from sibling checkout
+# `../../../aphrody/src/` with Axum 0.8.9 SSR, WebAssembly hydration, and native GPU rendering.
+
+[workspace]
+
+[package]
+name = "shenron-site"
+description = "Public Dragon Ball FR web/desktop/mobile portal on Dioxus 0.8 + Blitz GPU + Axum 0.8 SSR (ADR 0010)."
+version = "1.4.5"
+edition = "2024"
+rust-version = "1.100"
+license = "Apache-2.0"
+authors = ["Shenron contributors"]
+homepage = "https://dragonballfr.com"
+repository = "https://github.com/aphrody-labs/wiki"
+publish = false
+
+[lib]
+name = "shenron_site"
+path = "src/lib.rs"
+
+[[bin]]
+name = "shenron-site"
+path = "src/main.rs"
+
+[dependencies]
+axum = { version = "0.8.9", default-features = false, features = [
+  "http1",
+  "http2",
+  "json",
+  "query",
+  "tokio",
+], optional = true }
+dioxus = { path = "../../../aphrody/src/dioxus", features = ["fullstack", "router"] }
+reqwest = { version = "0.13.5", default-features = false, features = ["json"] }
+rustls = { version = "0.23.46", default-features = false, features = [
+  "ring",
+  "std",
+  "tls12",
+], optional = true }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+thiserror = "2.0.21"
+tokio = { version = "1.54.1", features = [
+  "rt-multi-thread",
+  "macros",
+  "net",
+  "io-util",
+  "time",
+  "sync",
+  "signal",
+], optional = true }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.22", features = ["env-filter", "fmt"], optional = true }
+url = { version = "2.5.9", features = ["serde"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+reqwest = { version = "0.13.5", default-features = false, features = ["json", "rustls-no-provider"] }
+
+[features]
+default = []
+server = [
+  "dioxus/server",
+  "dep:axum",
+  "dep:tokio",
+  "dep:tracing-subscriber",
+  "dep:rustls",
+]
+web = ["dioxus/web"]
+native = ["dioxus/native"]
+
+[lints.rust]
+unsafe_op_in_unsafe_fn = "deny"
+unused_must_use = "deny"
+non_ascii_idents = "deny"
+
+[lints.clippy]
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+todo = "deny"
+unimplemented = "deny"
+dbg_macro = "deny"
+unwrap_used = "deny"
+redundant_clone = "deny"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = true
+
+[profile.production]
+inherits = "release"
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = "symbols"
+
+[profile.wasm]
+inherits = "release"
+opt-level = "z"
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = "symbols"
