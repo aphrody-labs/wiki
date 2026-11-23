@@ -33,7 +33,7 @@ axum = { version = "0.8.9", default-features = false, features = [
   "query",
   "tokio",
 ], optional = true }
-dioxus = { path = "../../../aphrody/src/dioxus", features = ["fullstack", "router"] }
+dioxus = { version = "0.8.0-alpha.3", features = ["fullstack", "router"] }
 reqwest = { version = "0.13.5", default-features = false, features = ["json"] }
 rustls = { version = "0.23.46", default-features = false, features = [
   "ring",
