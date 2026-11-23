@@ -171,7 +171,7 @@ fn emb_cli_extracts_entries_to_a_new_directory_without_overwriting() {
 
 #[test]
 fn cpk_cli_extracts_to_a_new_directory_and_rejects_traversal() {
-    use nie_dbxv2_re::fs::cpk::CpkArchive;
+    use aphrody_re::fs::cpk::CpkArchive;
 
     let temp = tempfile::tempdir().unwrap();
     let input = temp.path().join("sample.cpk");

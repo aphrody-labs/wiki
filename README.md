@@ -8,7 +8,7 @@ Shenron is a Bun repository; its Rust crates live here so they build as one Carg
 
 ## Install
 
-Three checkouts side by side: `src/wiki`, `src/shenron` (provides `data/`) and `src/nie` (path dependency of `shenron-engine` and `shenron-ffi`, `../nie/plugins/exe/nie-dbxv2-re`). The Rust toolchain is pinned in `rust-toolchain.toml`. Builds run on the build host, not on a workstation.
+Three checkouts side by side: `src/wiki` (shared `aphrody-*` core + `shenron-*` crates), `src/shenron` (provides `data/`), and `src/nie` (IEVR only). The Rust toolchain is pinned in `rust-toolchain.toml`. Builds run on the build host, not on a workstation.
 
 ## Usage
 

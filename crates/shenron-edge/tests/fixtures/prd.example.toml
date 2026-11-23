@@ -15,18 +15,26 @@ storage_dir = "/var/lib/shenron-edge/acme"
 # HTTP-01 per name: a wildcard needs DNS-01, so each public host is listed.
 [[certificate]]
 name = "dragonballfr-hosts"
-domains = ["admin.dragonballfr.com", "tv.dragonballfr.com", "koharu.dragonballfr.com"]
+domains = [
+  "dragonballfr.com",
+  "tv.dragonballfr.com",
+  "wiki.dragonballfr.com",
+  "games.dragonballfr.com",
+  "api.dragonballfr.com",
+  "admin.dragonballfr.com",
+  "koharu.dragonballfr.com",
+]
 acme = true
+
+[[pool]]
+name = "server"
+[[pool.server]]
+addr = "127.0.0.1:3000"
 
 [[pool]]
 name = "admin"
 [[pool.server]]
 addr = "127.0.0.1:5020"
-
-[[pool]]
-name = "tv"
-[[pool.server]]
-addr = "127.0.0.1:8793"
 
 [[pool]]
 name = "koharu"
@@ -36,6 +44,21 @@ read_timeout = "600s"
 addr = "127.0.0.1:8890"
 
 [[vhost]]
+names = [
+  "dragonballfr.com",
+  "tv.dragonballfr.com",
+  "wiki.dragonballfr.com",
+  "games.dragonballfr.com",
+  "api.dragonballfr.com",
+]
+[vhost.headers.add]
+"X-Content-Type-Options" = "nosniff"
+"Referrer-Policy" = "strict-origin-when-cross-origin"
+[[vhost.route]]
+pool = "server"
+max_body = "16MiB"
+
+[[vhost]]
 names = ["admin.dragonballfr.com"]
 [vhost.headers.add]
 "X-Content-Type-Options" = "nosniff"
@@ -43,15 +66,6 @@ names = ["admin.dragonballfr.com"]
 "X-Frame-Options" = "DENY"
 [[vhost.route]]
 pool = "admin"
-
-[[vhost]]
-names = ["tv.dragonballfr.com"]
-[vhost.headers.add]
-"X-Content-Type-Options" = "nosniff"
-"Referrer-Policy" = "strict-origin-when-cross-origin"
-[[vhost.route]]
-pool = "tv"
-max_body = "1MiB"
 
 [[vhost]]
 names = ["koharu.dragonballfr.com"]
