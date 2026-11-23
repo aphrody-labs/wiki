@@ -656,9 +656,11 @@ impl ProxyHttp for EdgeProxy {
         ctx: &mut Ctx,
         mut e: Box<Error>,
     ) -> Box<Error> {
-        if let (Some(route), Some(index)) = (&ctx.route, ctx.picked) {
-            route.pool.report_failure(index, Instant::now());
-            if ctx.tried.len() < route.pool.servers.len() {
+        if let (Some(route), Some(index)) = (&ctx.route, ctx.picked)
+            && let Some(pool) = &route.pool
+        {
+            pool.report_failure(index, Instant::now());
+            if ctx.tried.len() < pool.servers.len() {
                 e.set_retry(true);
             }
         }
