@@ -244,6 +244,9 @@ impl ApiClient {
             return Err(ApiError::InvalidBaseUrl(trimmed.to_owned()));
         }
 
+        #[cfg(feature = "server")]
+        let _ = rustls::crypto::ring::default_provider().install_default();
+
         #[cfg(not(target_arch = "wasm32"))]
         let http = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(10))
