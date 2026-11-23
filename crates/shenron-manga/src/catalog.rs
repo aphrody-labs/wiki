@@ -96,7 +96,7 @@ impl MangaCdnClient {
 
         #[cfg(not(target_arch = "wasm32"))]
         let client = reqwest::Client::builder()
-            .user_agent("shenron-manga/1.0.0 (Shenron Sovereign Scanlation Engine)")
+            .user_agent("shenron-manga/1.4.5 (Shenron Scanlation Engine)")
             .timeout(std::time::Duration::from_secs(30))
             .build()
             .unwrap_or_default();

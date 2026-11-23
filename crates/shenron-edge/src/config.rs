@@ -284,8 +284,12 @@ pub struct VhostConfig {
     /// Answer plain HTTP with a 301 to `https://<host><uri>`.
     #[serde(default = "default_true")]
     pub redirect_http: bool,
-    /// Answer every request with a 301 to `https://<redirect_to><uri>` (www to apex).
+    /// Answer every request with a redirect to `https://<redirect_to><uri>` (www to apex).
     pub redirect_to: Option<String>,
+    /// HTTP status code for `redirect_to` (301, 302, 307 or 308; defaults to 301).
+    pub redirect_status: Option<u16>,
+    /// Fixed target path for `redirect_to` (defaults to preserving the incoming URI).
+    pub redirect_path: Option<String>,
     #[serde(default)]
     pub headers: HeaderRules,
     #[serde(default, rename = "route")]
@@ -301,7 +305,12 @@ pub struct RouteConfig {
     pub regex: Option<String>,
     #[serde(default = "default_true")]
     pub ignore_case: bool,
-    pub pool: String,
+    /// Upstream pool name; required unless `static_dir` is set.
+    pub pool: Option<String>,
+    /// Serve static files from this local directory instead of proxying upstream.
+    pub static_dir: Option<PathBuf>,
+    /// Strip this leading path prefix before forwarding upstream or resolving `static_dir`.
+    pub strip_prefix: Option<String>,
     /// `Host` sent upstream; defaults to the incoming host. May use variables.
     pub upstream_host: Option<String>,
     /// Extra request headers set on the upstream request. May use variables.
@@ -427,14 +436,39 @@ impl Config {
             if vhost.names.is_empty() {
                 bail!("vhost without names");
             }
+            if let Some(status) = vhost.redirect_status
+                && !matches!(status, 301 | 302 | 307 | 308)
+            {
+                bail!(
+                    "vhost `{}`: redirect_status must be 301, 302, 307 or 308 (got {status})",
+                    vhost.names[0]
+                );
+            }
             for route in &vhost.routes {
                 let matchers =
                     [route.prefix.is_some(), route.exact.is_some(), route.regex.is_some()];
                 if matchers.iter().filter(|set| **set).count() > 1 {
                     bail!("vhost `{}`: a route takes one of prefix, exact, regex", vhost.names[0]);
                 }
-                if !self.pools.iter().any(|p| p.name == route.pool) {
-                    bail!("vhost `{}`: unknown pool `{}`", vhost.names[0], route.pool);
+                match (&route.pool, &route.static_dir) {
+                    (Some(pool_name), None) => {
+                        if !self.pools.iter().any(|p| p.name == *pool_name) {
+                            bail!("vhost `{}`: unknown pool `{pool_name}`", vhost.names[0]);
+                        }
+                    },
+                    (None, Some(_)) => {},
+                    (Some(_), Some(_)) => {
+                        bail!(
+                            "vhost `{}`: route cannot specify both `pool` and `static_dir`",
+                            vhost.names[0]
+                        );
+                    },
+                    (None, None) => {
+                        bail!(
+                            "vhost `{}`: route requires either `pool` or `static_dir`",
+                            vhost.names[0]
+                        );
+                    },
                 }
                 if let Some(cache) = &route.cache {
                     if !self.caches.iter().any(|z| z.name == cache.zone) {

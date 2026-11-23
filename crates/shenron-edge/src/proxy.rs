@@ -96,11 +96,55 @@ pub fn client_ip(state: &State, peer: Option<IpAddr>, headers: &HeaderMap) -> St
 fn status_text(code: u16) -> &'static str {
     match code {
         301 => "Moved Permanently",
+        302 => "Found",
+        307 => "Temporary Redirect",
+        308 => "Permanent Redirect",
+        403 => "Forbidden",
         404 => "Not Found",
         413 => "Request Entity Too Large",
         421 => "Misdirected Request",
         _ => "Error",
     }
+}
+
+fn mime_for_path(path: &std::path::Path) -> &'static str {
+    match path.extension().and_then(|e| e.to_str()).unwrap_or("").to_ascii_lowercase().as_str() {
+        "html" | "htm" => "text/html; charset=utf-8",
+        "css" => "text/css; charset=utf-8",
+        "js" | "mjs" => "application/javascript; charset=utf-8",
+        "json" => "application/json; charset=utf-8",
+        "svg" => "image/svg+xml",
+        "png" => "image/png",
+        "jpg" | "jpeg" => "image/jpeg",
+        "webp" => "image/webp",
+        "avif" => "image/avif",
+        "gif" => "image/gif",
+        "ico" => "image/x-icon",
+        "woff2" => "font/woff2",
+        "woff" => "font/woff",
+        "wasm" => "application/wasm",
+        "glb" => "model/gltf-binary",
+        "gltf" => "model/gltf+json",
+        "mp4" => "video/mp4",
+        "m3u8" => "application/vnd.apple.mpegurl",
+        "txt" | "xml" => "text/plain; charset=utf-8",
+        _ => "application/octet-stream",
+    }
+}
+
+fn safe_relative_path(raw: &str) -> Option<std::path::PathBuf> {
+    let trimmed = raw.trim_start_matches('/');
+    if trimmed.is_empty() || trimmed.contains('\0') {
+        return None;
+    }
+    let mut out = std::path::PathBuf::new();
+    for comp in std::path::Path::new(trimmed).components() {
+        match comp {
+            std::path::Component::Normal(part) => out.push(part),
+            _ => return None,
+        }
+    }
+    Some(out)
 }
 
 impl EdgeProxy {
@@ -314,8 +358,18 @@ impl ProxyHttp for EdgeProxy {
         let redirect_host = vhost.cfg.redirect_to.as_deref();
         let upgrade_to_https = ctx.scheme == "http" && vhost.cfg.redirect_http;
         if redirect_host.is_some() || upgrade_to_https {
-            let target = format!("https://{}{}", redirect_host.unwrap_or(&ctx.host), ctx.uri);
-            self.respond_page(session, &state, 301, &[("location", target)]).await?;
+            let status = if redirect_host.is_some() {
+                vhost.cfg.redirect_status.unwrap_or(301)
+            } else {
+                301
+            };
+            let target_path = if redirect_host.is_some() {
+                vhost.cfg.redirect_path.as_deref().unwrap_or(&ctx.uri)
+            } else {
+                &ctx.uri
+            };
+            let target = format!("https://{}{}", redirect_host.unwrap_or(&ctx.host), target_path);
+            self.respond_page(session, &state, status, &[("location", target)]).await?;
             return Ok(true);
         }
 
@@ -324,6 +378,41 @@ impl ProxyHttp for EdgeProxy {
             return Ok(true);
         };
         ctx.route = Some(Arc::clone(&route));
+
+        if let Some(static_dir) = &route.cfg.static_dir {
+            let method = &session.req_header().method;
+            if *method != Method::GET && *method != Method::HEAD {
+                self.respond_page(session, &state, 403, &[]).await?;
+                return Ok(true);
+            }
+            let rel_raw = route
+                .cfg
+                .strip_prefix
+                .as_deref()
+                .and_then(|p| path.strip_prefix(p))
+                .or_else(|| route.cfg.prefix.as_deref().and_then(|p| path.strip_prefix(p)))
+                .unwrap_or(&path);
+            let Some(rel) = safe_relative_path(rel_raw) else {
+                self.respond_page(session, &state, 404, &[]).await?;
+                return Ok(true);
+            };
+            let full_path = static_dir.join(rel);
+            let Ok(bytes) = tokio::fs::read(&full_path).await else {
+                self.respond_page(session, &state, 404, &[]).await?;
+                return Ok(true);
+            };
+            let mime = mime_for_path(&full_path);
+            let mut resp = ResponseHeader::build(200, Some(8))?;
+            resp.insert_header("content-type", mime)?;
+            resp.insert_header("content-length", bytes.len().to_string())?;
+            self.finalize(&mut resp, ctx);
+            let head_only = *method == Method::HEAD || bytes.is_empty();
+            session.write_response_header(Box::new(resp), head_only).await?;
+            if !head_only {
+                session.write_response_body(Some(Bytes::from(bytes)), true).await?;
+            }
+            return Ok(true);
+        }
 
         if let Some(max) = route.cfg.max_body {
             let declared = header_str(&session.req_header().headers, "content-length")
@@ -359,7 +448,10 @@ impl ProxyHttp for EdgeProxy {
             .route
             .clone()
             .ok_or_else(|| Error::explain(ErrorType::InternalError, "no route"))?;
-        let pool = &route.pool;
+        let pool = route
+            .pool
+            .as_ref()
+            .ok_or_else(|| Error::explain(ErrorType::InternalError, "static route has no pool"))?;
         let index = pool
             .pick(&ctx.tried, Instant::now())
             .ok_or_else(|| Error::explain(ErrorType::HTTPStatus(502), "no upstream available"))?;
@@ -386,6 +478,24 @@ impl ProxyHttp for EdgeProxy {
         ctx: &mut Ctx,
     ) -> Result<()> {
         let (Some(state), Some(route)) = (&ctx.state, &ctx.route) else { return Ok(()) };
+        if let Some(prefix) = route.cfg.strip_prefix.as_deref()
+            && let Some(rest) = upstream.uri.path().strip_prefix(prefix)
+        {
+            let new_path = if rest.is_empty() {
+                "/".to_owned()
+            } else if rest.starts_with('/') {
+                rest.to_owned()
+            } else {
+                format!("/{rest}")
+            };
+            let new_uri = match upstream.uri.query() {
+                Some(q) => format!("{new_path}?{q}"),
+                None => new_path,
+            };
+            if let Ok(parsed) = new_uri.parse::<http::Uri>() {
+                upstream.set_uri(parsed);
+            }
+        }
         let vars = Vars {
             host: &ctx.host,
             scheme: ctx.scheme,
@@ -435,11 +545,13 @@ impl ProxyHttp for EdgeProxy {
     ) -> Result<()> {
         let Some(route) = ctx.route.clone() else { return Ok(()) };
         let status = upstream.status.as_u16();
-        if let Some(index) = ctx.picked {
+        if let Some(index) = ctx.picked
+            && let Some(pool) = &route.pool
+        {
             if route.cfg.failure_statuses.contains(&status) {
-                route.pool.report_failure(index, Instant::now());
+                pool.report_failure(index, Instant::now());
             } else {
-                route.pool.report_success(index);
+                pool.report_success(index);
             }
         }
         let Some(rc) = &route.cache else { return Ok(()) };

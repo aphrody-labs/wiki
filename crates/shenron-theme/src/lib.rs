@@ -5,6 +5,9 @@
 //! "Shenron Jour" themes carry the measured series colours, their OKLCH tonal scales and text
 //! tones chosen to reach the WCAG AA body ratio on their background.
 
+pub mod css;
+pub mod toriyama_svg;
+
 use std::rc::Rc;
 use std::time::Duration;
 

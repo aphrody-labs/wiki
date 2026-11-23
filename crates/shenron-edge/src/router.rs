@@ -45,7 +45,7 @@ impl RouteCache {
 pub struct Route {
     pub matcher: Matcher,
     pub cfg: RouteConfig,
-    pub pool: Arc<Pool>,
+    pub pool: Option<Arc<Pool>>,
     pub cache: Option<RouteCache>,
 }
 
@@ -134,7 +134,13 @@ fn build_route(
     } else {
         Matcher::Any
     };
-    let pool = pools.get(&cfg.pool).with_context(|| format!("unknown pool `{}`", cfg.pool))?;
+    let pool = cfg
+        .pool
+        .as_deref()
+        .map(|name| {
+            pools.get(name).cloned().with_context(|| format!("unknown pool `{name}`"))
+        })
+        .transpose()?;
     let cache = cfg
         .cache
         .as_ref()
@@ -152,7 +158,7 @@ fn build_route(
             })
         })
         .transpose()?;
-    Ok(Arc::new(Route { matcher, cfg: cfg.clone(), pool: Arc::clone(pool), cache }))
+    Ok(Arc::new(Route { matcher, cfg: cfg.clone(), pool, cache }))
 }
 
 #[cfg(test)]

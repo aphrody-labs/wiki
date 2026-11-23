@@ -20,6 +20,7 @@ pub mod bubble;
 pub mod catalog;
 pub mod ocr_projection;
 pub mod pipeline;
+pub mod sources;
 
 #[cfg(feature = "koharu")]
 pub use koharu_library as koharu;
