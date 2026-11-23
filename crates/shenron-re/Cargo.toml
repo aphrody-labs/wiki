@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 [package]
-name = "nie-dbxv2-re"
+name = "aphrody-re"
 description = "Pure Rust reverse engineering engine and binary parsers for Dragon Ball Xenoverse 2 (DBXV2) formats, CRIWARE CPK archives, live memory inspection, and game data ingestion for Shenron."
 version.workspace = true
 edition.workspace = true

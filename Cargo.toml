@@ -22,8 +22,8 @@ homepage = "https://dragonballfr.com"
 repository = "https://github.com/aphrody-labs/wiki"
 
 [workspace.dependencies]
-# Moved from nie/plugins/exe/nie-dbxv2-re into wiki (ADR 0011: zero Dragon Ball code in nie).
-shenron-re = { package = "nie-dbxv2-re", path = "crates/shenron-re" }
+# Moved from nie/plugins/exe/nie-dbxv2-re into wiki (ADR 0011: aphrody-* generic scope).
+shenron-re = { package = "aphrody-re", path = "crates/shenron-re" }
 alphanumeric-sort = "1.5.8"
 deadpool-postgres = "0.14.2"
 eventsource-stream = "0.2.3"
